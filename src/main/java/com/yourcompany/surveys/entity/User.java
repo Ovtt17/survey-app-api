@@ -79,7 +79,7 @@ public class User implements UserDetails, Principal {
     private List<Address> address;
 
     @ManyToMany(
-            fetch = FetchType.LAZY
+            fetch = FetchType.EAGER
     )
     private List<Role> roles;
 

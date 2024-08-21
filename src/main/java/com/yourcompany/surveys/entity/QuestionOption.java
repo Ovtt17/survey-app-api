@@ -17,7 +17,7 @@ public class QuestionOption {
 
     @Column(nullable = false)
     private String text;
-    private Boolean correct;
+    private Boolean isCorrect;
 
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
