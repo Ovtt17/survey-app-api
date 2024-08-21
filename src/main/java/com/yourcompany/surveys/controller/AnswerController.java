@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,8 +34,8 @@ public class AnswerController {
     }
 
     @PostMapping
-    public ResponseEntity<AnswerResponse> createAnswer(@RequestBody AnswerRequestDTO answer) {
-        AnswerResponse newAnswer = answerService.save(answer);
+    public ResponseEntity<AnswerResponse> createAnswer(@RequestBody AnswerRequestDTO answer, Principal principal) {
+        AnswerResponse newAnswer = answerService.save(answer, principal);
         return new ResponseEntity<>(newAnswer, HttpStatus.CREATED);
     }
 
