@@ -1,6 +1,10 @@
 package com.yourcompany.surveys.service;
 
+import com.yourcompany.surveys.dto.AnswerRequestDTO;
+import com.yourcompany.surveys.dto.AnswerResponse;
 import com.yourcompany.surveys.entity.Answer;
+import com.yourcompany.surveys.entity.Question;
+import com.yourcompany.surveys.mapper.AnswerMapper;
 import com.yourcompany.surveys.repository.AnswerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,22 +16,38 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AnswerService {
     private final AnswerRepository answerRepository;
+    private final AnswerMapper answerMapper;
 
-    public List<Answer> findAll() {
-        return answerRepository.findAll();
+    public List<AnswerResponse> findAll() {
+        List<Answer> answers = answerRepository.findAll();
+        return answers.stream()
+                .map(answerMapper::toResponse)
+                .toList();
     }
 
-    public Optional<Answer> findById(Long id) {
-        return answerRepository.findById(id);
+    public Optional<AnswerResponse> findById(Long id) {
+        Optional<Answer> answer = answerRepository.findById(id);
+        return answer.map(answerMapper::toResponse);
     }
 
-    public Answer save(Answer answer) {
-        return answerRepository.save(answer);
+    public AnswerResponse save(AnswerRequestDTO answer) {
+        Answer newAnswer = Answer.builder()
+                .question(
+                        Question.builder()
+                                .id(answer.questionId())
+                                .build()
+                )
+                .answerText(answer.answerText())
+                .build();
+        answerRepository.save(newAnswer);
+        return answerMapper.toResponse(newAnswer);
     }
 
-    public Answer update(Long id, Answer answer) {
-        answer.setId(id);
-        return answerRepository.save(answer);
+    public AnswerResponse update(Long id, AnswerRequestDTO answer) {
+        Answer answerEntity = answerMapper.toEntity(answer);
+        answerEntity.setId(id);
+        answerRepository.save(answerEntity);
+        return answerMapper.toResponse(answerEntity);
     }
 
     public void delete(Long id) {

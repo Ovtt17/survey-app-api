@@ -1,5 +1,7 @@
 package com.yourcompany.surveys.controller;
 
+import com.yourcompany.surveys.dto.AnswerRequestDTO;
+import com.yourcompany.surveys.dto.AnswerResponse;
 import com.yourcompany.surveys.entity.Answer;
 import com.yourcompany.surveys.service.AnswerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,25 +22,25 @@ public class AnswerController {
     private final AnswerService answerService;
 
     @GetMapping
-    public ResponseEntity<List<Answer>> getAllAnswers() {
+    public ResponseEntity<List<AnswerResponse>> getAllAnswers() {
         return ResponseEntity.ok(answerService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<Answer>> getAnswerById(@PathVariable Long id) {
-        Optional<Answer> answer = answerService.findById(id);
+    public ResponseEntity<Optional<AnswerResponse>> getAnswerById(@PathVariable Long id) {
+        Optional<AnswerResponse> answer = answerService.findById(id);
         return new ResponseEntity<>(answer, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Answer> createAnswer(@RequestBody Answer answer) {
-        Answer newAnswer = answerService.save(answer);
+    public ResponseEntity<AnswerResponse> createAnswer(@RequestBody AnswerRequestDTO answer) {
+        AnswerResponse newAnswer = answerService.save(answer);
         return new ResponseEntity<>(newAnswer, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Answer> updateAnswer(@PathVariable Long id, @RequestBody Answer answer) {
-        Answer updatedAnswer = answerService.update(id, answer);
+    public ResponseEntity<AnswerResponse> updateAnswer(@PathVariable Long id, @RequestBody AnswerRequestDTO answer) {
+        AnswerResponse updatedAnswer = answerService.update(id, answer);
         return new ResponseEntity<>(updatedAnswer, HttpStatus.OK);
     }
 
