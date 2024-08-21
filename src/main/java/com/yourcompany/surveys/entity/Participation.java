@@ -2,6 +2,7 @@ package com.yourcompany.surveys.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
@@ -25,5 +26,7 @@ public class Participation {
     @JoinColumn(name = "survey_id", nullable = false)
     private Survey survey;
 
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
     private LocalDateTime participationDate;
 }
