@@ -39,7 +39,7 @@ public class SurveyService {
     @Transactional
     public SurveyResponse save(SurveyRequestDTO surveyRequest, Principal principal) {
         String username = principal.getName();
-        Optional<User> user = userRepository.findByEmail(username);
+        Optional<User> user = userRepository.findByUsername(username);
         User creator = user.orElseThrow();
         Survey survey = surveyMapper.toEntity(surveyRequest);
         survey.setCreator(creator);
