@@ -2,7 +2,6 @@ package com.yourcompany.surveys.service;
 
 import com.yourcompany.surveys.dto.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.SurveyResponse;
-import com.yourcompany.surveys.dto.UserResponse;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.mapper.SurveyMapper;
@@ -10,7 +9,6 @@ import com.yourcompany.surveys.repository.SurveyRepository;
 import com.yourcompany.surveys.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
