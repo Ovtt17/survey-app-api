@@ -2,7 +2,6 @@ package com.yourcompany.surveys.controller;
 
 import com.yourcompany.surveys.dto.AnswerRequestDTO;
 import com.yourcompany.surveys.dto.AnswerResponse;
-import com.yourcompany.surveys.entity.Answer;
 import com.yourcompany.surveys.service.AnswerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
