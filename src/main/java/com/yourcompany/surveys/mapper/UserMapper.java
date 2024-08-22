@@ -10,15 +10,15 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
     public UserResponse toUserResponse(User user) {
         return new UserResponse(
-                user.getId(),
+                user.getName(),
                 user.getFirstName(),
                 user.getLastName()
         );
     }
 
-    public User toEntity(Long id) {
+    public User toEntity(String username) {
         return User.builder()
-                .id(id)
+                .username(username)
                 .build();
     }
 }
