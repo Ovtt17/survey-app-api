@@ -42,6 +42,9 @@ public class User implements UserDetails, Principal {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(unique = true, nullable = false)
+    private String username;
+
     @Column(nullable = false)
     private String password;
 
@@ -79,13 +82,13 @@ public class User implements UserDetails, Principal {
     private List<Address> address;
 
     @ManyToMany(
-            fetch = FetchType.LAZY
+            fetch = FetchType.EAGER
     )
     private List<Role> roles;
 
     @Override
     public String getName() {
-        return email;
+        return username;
     }
 
     @Override

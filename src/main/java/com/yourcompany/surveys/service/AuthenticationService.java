@@ -47,6 +47,7 @@ public class AuthenticationService {
                 .dateOfBirth(request.getDateOfBirth())
                 .phone(request.getPhone())
                 .email(request.getEmail())
+                .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .accountLocked(false)
                 .enabled(true)
@@ -76,7 +77,7 @@ public class AuthenticationService {
         var token = Token.builder()
                 .token(generatedToken)
                 .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .expiresAt(LocalDateTime.now().plusMinutes(30))
                 .user(user)
                 .build();
         tokenRepository.save(token);
@@ -95,13 +96,19 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        User user = userRepository.findByUsername(request.getUsernameOrEmail())
+                .orElseGet(() -> userRepository.findByEmail(request.getUsernameOrEmail())
+                        .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado")));
+
         var auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
+                        user.getUsername(),
                         request.getPassword())
         );
+
+        user = (User) auth.getPrincipal();
+
         var claims = new HashMap<String, Object>();
-        var user = ((User) auth.getPrincipal());
         claims.put("fullName", user.getFullName());
         var jwtToken = jwtService.generateToken(claims, user);
         return AuthenticationResponse.builder()
