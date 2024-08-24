@@ -19,7 +19,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/username")
+    @GetMapping("/me")
     public ResponseEntity<UserResponse> getUser(
             Principal principal
     ) {

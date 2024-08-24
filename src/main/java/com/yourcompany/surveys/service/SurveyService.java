@@ -30,14 +30,24 @@ public class SurveyService {
     }
 
     public Optional<SurveyResponse> findById(Long id) {
-        return surveyRepository.findById(id)
-                .map(surveyMapper::toResponse);
+        Optional<Survey> survey = surveyRepository.findById(id);
+        return survey.map(surveyMapper::toResponse);
+    }
+
+    public List<SurveyResponse> getByUser(Principal principal) {
+        String username = principal.getName();
+        Optional<User> user = userRepository.findByEmail(username);
+        User creator = user.orElseThrow();
+        List<Survey> surveys = surveyRepository.findByCreator(creator);
+        return surveys.stream()
+                .map(surveyMapper::toResponse)
+                .toList();
     }
 
     @Transactional
     public SurveyResponse save(SurveyRequestDTO surveyRequest, Principal principal) {
         String username = principal.getName();
-        Optional<User> user = userRepository.findByUsername(username);
+        Optional<User> user = userRepository.findByEmail(username);
         User creator = user.orElseThrow();
         Survey survey = surveyMapper.toEntity(surveyRequest);
         survey.setCreator(creator);

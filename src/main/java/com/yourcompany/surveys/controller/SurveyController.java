@@ -32,6 +32,11 @@ public class SurveyController {
         return new ResponseEntity<>(survey, HttpStatus.OK);
     }
 
+    @GetMapping("/user")
+    public ResponseEntity<List<SurveyResponse>> getSurveysByUser(Principal principal) {
+        return ResponseEntity.ok(surveyService.getByUser(principal));
+    }
+
     @PostMapping
     public ResponseEntity<SurveyResponse> createSurvey(@RequestBody SurveyRequestDTO surveyRequest, Principal principal) {
         SurveyResponse createdSurvey = surveyService.save(surveyRequest, principal);

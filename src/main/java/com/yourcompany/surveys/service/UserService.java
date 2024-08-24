@@ -19,7 +19,7 @@ public class UserService {
 
     public UserResponse getUser(Principal principal) {
         String username = principal.getName();
-        Optional<User> userOptional = userRepository.findByUsername(username);
+        Optional<User> userOptional = userRepository.findByEmail(username);
         User user = userOptional.orElseThrow();
         return userMapper.toUserResponse(user);
     }
