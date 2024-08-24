@@ -30,6 +30,7 @@ public class SurveyMapper {
 
     public Survey toEntity(SurveyRequestDTO surveyRequest) {
         Survey survey = Survey.builder()
+                .id(surveyRequest.id())
                 .title(surveyRequest.title())
                 .description(surveyRequest.description())
                 .build();
@@ -44,5 +45,4 @@ public class SurveyMapper {
 
         return survey;
     }
-
 }

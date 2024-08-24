@@ -29,6 +29,7 @@ public class QuestionMapper {
 
     public Question toEntity(QuestionRequestDTO questionRequest) {
         Question question = Question.builder()
+                .id(questionRequest.id())
                 .text(questionRequest.text())
                 .type(QuestionType.fromValue(questionRequest.type()))
                 .build();

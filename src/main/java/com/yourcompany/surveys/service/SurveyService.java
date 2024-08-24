@@ -1,9 +1,13 @@
 package com.yourcompany.surveys.service;
 
+import com.yourcompany.surveys.dto.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.SurveyResponse;
+import com.yourcompany.surveys.entity.Question;
+import com.yourcompany.surveys.entity.QuestionType;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
+import com.yourcompany.surveys.mapper.QuestionMapper;
 import com.yourcompany.surveys.mapper.SurveyMapper;
 import com.yourcompany.surveys.repository.SurveyRepository;
 import com.yourcompany.surveys.repository.UserRepository;
@@ -12,8 +16,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +28,7 @@ public class SurveyService {
     private final SurveyRepository surveyRepository;
     private final SurveyMapper surveyMapper;
     private final UserRepository userRepository;
+    private final QuestionMapper questionMapper;
 
     public List<SurveyResponse> findAll() {
         List<Survey> surveys = surveyRepository.findAll();
@@ -55,8 +63,37 @@ public class SurveyService {
         return surveyMapper.toResponse(survey);
     }
 
-    public Survey update(Survey survey) {
-        return surveyRepository.save(survey);
+    public SurveyResponse update(Long id, SurveyRequestDTO surveyRequest) {
+        Survey existingSurvey = surveyRepository.findById(id).orElseThrow();
+
+        existingSurvey.setTitle(surveyRequest.title());
+        existingSurvey.setDescription(surveyRequest.description());
+
+        Map<Long, QuestionRequestDTO> requestQuestionsMap = surveyRequest.questions().stream()
+                .collect(Collectors.toMap(QuestionRequestDTO::id, q -> q));
+
+        Iterator<Question> existingQuestionsIterator = existingSurvey.getQuestions().iterator();
+        while (existingQuestionsIterator.hasNext()) {
+            Question existingQuestion = existingQuestionsIterator.next();
+
+            if (requestQuestionsMap.containsKey(existingQuestion.getId())) {
+                QuestionRequestDTO questionRequest = requestQuestionsMap.get(existingQuestion.getId());
+                existingQuestion.setText(questionRequest.text());
+                existingQuestion.setType(QuestionType.fromValue(questionRequest.type()));
+
+                requestQuestionsMap.remove(existingQuestion.getId());
+            } else {
+                existingQuestionsIterator.remove();
+            }
+        }
+
+        requestQuestionsMap.values().forEach(questionRequest -> {
+            Question newQuestion = questionMapper.toEntity(questionRequest);
+            newQuestion.setSurvey(existingSurvey);
+            existingSurvey.getQuestions().add(newQuestion);
+        });
+
+        return surveyMapper.toResponse(surveyRepository.save(existingSurvey));
     }
 
     public void deleteById(Long id) {

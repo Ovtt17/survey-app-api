@@ -20,6 +20,7 @@ public class QuestionOptionMapper {
 
     public QuestionOption toEntity(QuestionOptionRequestDTO questionOptionRequest) {
         return QuestionOption.builder()
+                .id(questionOptionRequest.id())
                 .text(questionOptionRequest.text())
                 .isCorrect(questionOptionRequest.isCorrect())
                 .build();

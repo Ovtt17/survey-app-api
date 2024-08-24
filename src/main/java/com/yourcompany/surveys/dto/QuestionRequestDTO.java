@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 public record QuestionRequestDTO (
+        Long id,
         @NotBlank(message = "El contenido de la pregunta es obligatorio")
         String text,
         @NotBlank(message = "El tipo de pregunta es obligatorio")

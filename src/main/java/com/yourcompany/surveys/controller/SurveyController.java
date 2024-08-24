@@ -2,7 +2,6 @@ package com.yourcompany.surveys.controller;
 
 import com.yourcompany.surveys.dto.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.SurveyResponse;
-import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.service.SurveyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -44,9 +43,8 @@ public class SurveyController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Survey> updateSurvey(@PathVariable Long id, @RequestBody Survey survey) {
-        survey.setId(id);
-        Survey updatedSurvey = surveyService.update(survey);
+    public ResponseEntity<SurveyResponse> updateSurvey(@PathVariable Long id, @RequestBody SurveyRequestDTO surveyRequest) {
+        SurveyResponse updatedSurvey = surveyService.update(id, surveyRequest);
         return new ResponseEntity<>(updatedSurvey, HttpStatus.OK);
     }
 
