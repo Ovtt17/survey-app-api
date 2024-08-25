@@ -18,8 +18,6 @@ public class Answer {
     @Column(nullable = false)
     private String answerText;
 
-    private Double rating;
-
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

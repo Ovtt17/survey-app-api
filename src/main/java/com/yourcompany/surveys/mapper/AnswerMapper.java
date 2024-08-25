@@ -33,7 +33,6 @@ public class AnswerMapper {
                                 .build()
                 )
                 .answerText(answerRequest.answerText())
-                .rating(answerRequest.rating())
                 .build();
     }
 }
