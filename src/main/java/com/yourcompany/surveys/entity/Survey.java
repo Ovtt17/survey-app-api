@@ -25,14 +25,14 @@ public class Survey {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String description;
 
-    @Column(nullable = false, insertable = false)
-    private Double averageRating;
+    @Column(nullable = false, insertable = false, columnDefinition = "double default 0.0")
+    private Double averageRating = 0.0;
 
-    @Column(nullable = false, insertable = false)
-    private Integer ratingCount;
+    @Column(nullable = false, insertable = false, columnDefinition = "int default 0")
+    private Integer ratingCount = 0;
 
     @ManyToOne
     @JoinColumn(name = "creator_id", nullable = false)
