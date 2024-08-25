@@ -24,7 +24,7 @@ public class RatingService {
     private final SurveyRepository surveyRepository;
 
     @Transactional
-    public void createOrUpdateRating(@Valid RatingRequestDTO ratingRequest, Principal principal) {
+    public Rating createOrUpdateRating(@Valid RatingRequestDTO ratingRequest, Principal principal) {
         // Buscar la encuesta
         Survey survey = surveyRepository.findById(ratingRequest.surveyId())
                 .orElseThrow(() -> new IllegalArgumentException("Survey not found"));
@@ -50,8 +50,9 @@ public class RatingService {
             survey.setAverageRating(
                     ((survey.getAverageRating() * (survey.getRatingCount() - 1)) + rating.getRating()) / survey.getRatingCount()
             );
-            ratingRepository.save(rating);
+            return ratingRepository.save(rating);
         }
         surveyRepository.save(survey);
+        return existingRating;
     }
 }
