@@ -24,7 +24,7 @@ public class Rating {
     private Double rating;
 
     @ManyToOne
-    @JoinColumn(name = "survey_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne
