@@ -12,6 +12,7 @@ public class UserMapper {
         return new UserResponse(
                 user.getName(),
                 user.getFirstName(),
+                user.getFullName(),
                 user.getLastName()
         );
     }
