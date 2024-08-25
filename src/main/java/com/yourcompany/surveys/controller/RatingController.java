@@ -23,7 +23,7 @@ public class RatingController {
 
     @PostMapping
     public ResponseEntity<Void> createRating (@RequestBody @Valid RatingRequestDTO ratingRequest, Principal principal) {
-        ratingService.createRating(ratingRequest, principal);
+        ratingService.createOrUpdateRating(ratingRequest, principal);
         return ResponseEntity.ok().build();
     }
 }
