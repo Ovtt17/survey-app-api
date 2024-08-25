@@ -7,6 +7,8 @@ public record SurveyResponse (
         String title,
         String description,
         UserResponse creator,
-        List<QuestionResponse> questions
+        List<QuestionResponse> questions,
+        Double averageRating,
+        Long ratingCount
 ){
 }

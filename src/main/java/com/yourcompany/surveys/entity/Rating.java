@@ -1,7 +1,12 @@
 package com.yourcompany.surveys.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+
 
 @Getter
 @Setter
@@ -9,24 +14,21 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "answers")
-public class Answer {
+@Table(name = "ratings")
+public class Rating {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String answerText;
+    private Double rating;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "question_id", nullable = false)
-    private Question question;
-
-    @ManyToOne
     @JoinColumn(name = "survey_id", nullable = false)
     private Survey survey;
+
 }

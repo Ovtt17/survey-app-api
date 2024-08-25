@@ -21,6 +21,7 @@ public class AnswerMapper {
     }
     public Answer toEntity(AnswerRequestDTO answerRequest) {
         return Answer.builder()
+                .id(answerRequest.id())
                 .survey(
                         Survey.builder()
                                 .id(answerRequest.surveyId())
