@@ -15,7 +15,10 @@ public class Answer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String answerText;
+
+    private Double rating;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
