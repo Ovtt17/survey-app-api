@@ -14,16 +14,20 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "reviews")
-public class ReviewRating {
+public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 500)
-    private String reviewText;
+    @Column(nullable = false, length = 100)
+    private String title;
 
-    @Column(nullable = false)
-    private Double rating;
+    @Column(nullable = false, length = 500)
+    private String content;
+
+    @ManyToOne
+    @JoinColumn(name = "rating_id", nullable = false)
+    private Rating rating;
 
     @ManyToOne
     @JoinColumn(name = "survey_id", nullable = false)
