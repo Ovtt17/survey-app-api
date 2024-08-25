@@ -24,7 +24,9 @@ public class SurveyMapper {
                 userMapper.toUserResponse(survey.getCreator()),
                 survey.getQuestions().stream()
                         .map(questionMapper::toResponse)
-                        .collect(Collectors.toList())
+                        .collect(Collectors.toList()),
+                survey.getAverageRating(),
+                survey.getRatingCount()
         );
     }
 

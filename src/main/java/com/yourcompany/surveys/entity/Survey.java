@@ -31,8 +31,8 @@ public class Survey {
     @Column(nullable = false, insertable = false, columnDefinition = "double default 0.0")
     private Double averageRating = 0.0;
 
-    @Column(nullable = false, insertable = false, columnDefinition = "int default 0")
-    private Integer ratingCount = 0;
+    @Column(nullable = false, insertable = false, columnDefinition = "bigint default 0")
+    private Long ratingCount = 0L;
 
     @ManyToOne
     @JoinColumn(name = "creator_id", nullable = false)
