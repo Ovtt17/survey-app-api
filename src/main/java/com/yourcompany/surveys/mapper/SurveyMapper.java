@@ -4,6 +4,7 @@ import com.yourcompany.surveys.dto.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.SurveyResponse;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.Survey;
+import com.yourcompany.surveys.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -30,11 +31,12 @@ public class SurveyMapper {
         );
     }
 
-    public Survey toEntity(SurveyRequestDTO surveyRequest) {
+    public Survey toEntity(SurveyRequestDTO surveyRequest, User user) {
         Survey survey = Survey.builder()
                 .id(surveyRequest.id())
                 .title(surveyRequest.title())
                 .description(surveyRequest.description())
+                .creator(user)
                 .build();
 
         survey.setQuestions(surveyRequest.questions().stream()

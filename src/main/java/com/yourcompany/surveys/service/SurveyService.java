@@ -43,10 +43,11 @@ public class SurveyService {
     }
 
     public List<SurveyResponse> getByUser(Principal principal) {
-        String username = principal.getName();
-        Optional<User> user = userRepository.findByEmail(username);
-        User creator = user.orElseThrow();
-        List<Survey> surveys = surveyRepository.findByCreator(creator);
+        String email = principal.getName();
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new IllegalArgumentException("User not found")
+        );
+        List<Survey> surveys = surveyRepository.findByCreator(user);
         return surveys.stream()
                 .map(surveyMapper::toResponse)
                 .toList();
@@ -54,11 +55,11 @@ public class SurveyService {
 
     @Transactional
     public SurveyResponse save(SurveyRequestDTO surveyRequest, Principal principal) {
-        String username = principal.getName();
-        Optional<User> user = userRepository.findByEmail(username);
-        User creator = user.orElseThrow();
-        Survey survey = surveyMapper.toEntity(surveyRequest);
-        survey.setCreator(creator);
+        String email = principal.getName();
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new IllegalArgumentException("User not found")
+        );
+        Survey survey = surveyMapper.toEntity(surveyRequest, user);
         survey = surveyRepository.save(survey);
         return surveyMapper.toResponse(survey);
     }
