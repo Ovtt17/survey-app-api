@@ -1,7 +1,7 @@
 package com.yourcompany.surveys.mapper;
 
-import com.yourcompany.surveys.dto.QuestionOptionRequestDTO;
-import com.yourcompany.surveys.dto.QuestionOptionResponse;
+import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
+import com.yourcompany.surveys.dto.question.QuestionOptionResponse;
 import com.yourcompany.surveys.entity.QuestionOption;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

@@ -1,4 +1,4 @@
-package com.yourcompany.surveys.dto;
+package com.yourcompany.surveys.dto.user;
 
 import lombok.Builder;
 import lombok.Getter;

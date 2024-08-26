@@ -1,4 +1,4 @@
-package com.yourcompany.surveys.dto;
+package com.yourcompany.surveys.dto.answer;
 
 public record AnswerResponse(
         Long id,

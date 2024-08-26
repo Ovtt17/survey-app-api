@@ -1,7 +1,7 @@
 package com.yourcompany.surveys.mapper;
 
-import com.yourcompany.surveys.dto.RatingRequestDTO;
-import com.yourcompany.surveys.dto.RatingResponse;
+import com.yourcompany.surveys.dto.rating.RatingRequestDTO;
+import com.yourcompany.surveys.dto.rating.RatingResponse;
 import com.yourcompany.surveys.entity.Rating;
 import com.yourcompany.surveys.entity.Survey;
 import lombok.RequiredArgsConstructor;

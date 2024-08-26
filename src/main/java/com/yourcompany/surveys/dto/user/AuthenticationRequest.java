@@ -1,4 +1,4 @@
-package com.yourcompany.surveys.dto;
+package com.yourcompany.surveys.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

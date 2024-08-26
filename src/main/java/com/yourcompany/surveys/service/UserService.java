@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.service;
 
-import com.yourcompany.surveys.dto.UserResponse;
+import com.yourcompany.surveys.dto.user.UserResponse;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.mapper.UserMapper;
 import com.yourcompany.surveys.repository.UserRepository;

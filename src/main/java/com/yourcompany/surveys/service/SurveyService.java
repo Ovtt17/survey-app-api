@@ -1,8 +1,8 @@
 package com.yourcompany.surveys.service;
 
-import com.yourcompany.surveys.dto.QuestionRequestDTO;
-import com.yourcompany.surveys.dto.SurveyRequestDTO;
-import com.yourcompany.surveys.dto.SurveyResponse;
+import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
+import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
+import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.QuestionType;
 import com.yourcompany.surveys.entity.Survey;

@@ -1,5 +1,6 @@
-package com.yourcompany.surveys.dto;
+package com.yourcompany.surveys.dto.review;
 
+import com.yourcompany.surveys.dto.rating.RatingRequestDTO;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 

@@ -1,7 +1,7 @@
 package com.yourcompany.surveys.controller;
 
-import com.yourcompany.surveys.dto.SurveyRequestDTO;
-import com.yourcompany.surveys.dto.SurveyResponse;
+import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
+import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.service.SurveyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

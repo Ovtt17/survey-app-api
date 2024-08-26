@@ -1,4 +1,6 @@
-package com.yourcompany.surveys.dto;
+package com.yourcompany.surveys.dto.review;
+
+import com.yourcompany.surveys.dto.rating.RatingResponse;
 
 import java.time.LocalDateTime;
 

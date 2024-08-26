@@ -1,8 +1,8 @@
 package com.yourcompany.surveys.controller;
 
-import com.yourcompany.surveys.dto.AuthenticationRequest;
-import com.yourcompany.surveys.dto.AuthenticationResponse;
-import com.yourcompany.surveys.dto.RegistrationRequest;
+import com.yourcompany.surveys.dto.user.AuthenticationRequest;
+import com.yourcompany.surveys.dto.user.AuthenticationResponse;
+import com.yourcompany.surveys.dto.user.RegistrationRequest;
 import com.yourcompany.surveys.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;

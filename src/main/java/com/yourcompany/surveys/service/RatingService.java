@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.service;
 
-import com.yourcompany.surveys.dto.RatingRequestDTO;
+import com.yourcompany.surveys.dto.rating.RatingRequestDTO;
 import com.yourcompany.surveys.entity.Rating;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;

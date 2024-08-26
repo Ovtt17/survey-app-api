@@ -1,4 +1,4 @@
-package com.yourcompany.surveys.dto;
+package com.yourcompany.surveys.dto.rating;
 
 public record RatingResponse(
         Long id,

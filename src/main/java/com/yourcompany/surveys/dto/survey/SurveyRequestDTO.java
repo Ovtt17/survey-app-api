@@ -1,5 +1,6 @@
-package com.yourcompany.surveys.dto;
+package com.yourcompany.surveys.dto.survey;
 
+import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 

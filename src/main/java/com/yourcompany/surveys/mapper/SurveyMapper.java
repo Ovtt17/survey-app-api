@@ -1,7 +1,7 @@
 package com.yourcompany.surveys.mapper;
 
-import com.yourcompany.surveys.dto.SurveyRequestDTO;
-import com.yourcompany.surveys.dto.SurveyResponse;
+import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
+import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
