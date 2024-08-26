@@ -3,12 +3,12 @@ package com.yourcompany.surveys.service;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
-import com.yourcompany.surveys.entity.Question;
-import com.yourcompany.surveys.entity.QuestionType;
-import com.yourcompany.surveys.entity.Survey;
-import com.yourcompany.surveys.entity.User;
+import com.yourcompany.surveys.dto.user.UserResponse;
+import com.yourcompany.surveys.entity.*;
 import com.yourcompany.surveys.mapper.QuestionMapper;
 import com.yourcompany.surveys.mapper.SurveyMapper;
+import com.yourcompany.surveys.mapper.UserMapper;
+import com.yourcompany.surveys.repository.AnswerRepository;
 import com.yourcompany.surveys.repository.SurveyRepository;
 import com.yourcompany.surveys.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -29,6 +29,8 @@ public class SurveyService {
     private final SurveyMapper surveyMapper;
     private final UserRepository userRepository;
     private final QuestionMapper questionMapper;
+    private final AnswerRepository answerRepository;
+    private final UserMapper userMapper;
 
     public List<SurveyResponse> findAll() {
         List<Survey> surveys = surveyRepository.findAll();
@@ -99,5 +101,12 @@ public class SurveyService {
 
     public void deleteById(Long id) {
         surveyRepository.deleteById(id);
+    }
+
+    public List<UserResponse> getSurveyUsers(Long id) {
+        List<User> users = answerRepository.findBySurveyId(id).stream()
+                .map(Answer::getUser).toList();
+        return users.stream().map(userMapper::toUserResponse)
+                .toList();
     }
 }

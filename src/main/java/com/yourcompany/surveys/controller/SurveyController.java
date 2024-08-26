@@ -2,6 +2,7 @@ package com.yourcompany.surveys.controller;
 
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
+import com.yourcompany.surveys.dto.user.UserResponse;
 import com.yourcompany.surveys.service.SurveyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -52,5 +53,10 @@ public class SurveyController {
     public ResponseEntity<Void> deleteSurvey(@PathVariable Long id) {
         surveyService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/{id}/users")
+    public ResponseEntity<List<UserResponse>> getSurveyUsers(@PathVariable Long id) {
+        return ResponseEntity.ok(surveyService.getSurveyUsers(id));
     }
 }
