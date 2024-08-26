@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/reports")
 @RequiredArgsConstructor
 @Tag(name = "Reports")
-public class ExportController {
+public class ReportController {
 }
