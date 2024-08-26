@@ -25,11 +25,11 @@ public class RatingService {
 
     @Transactional
     public Rating createOrUpdateRating(@Valid RatingRequestDTO ratingRequest, Principal principal) {
-        // Buscar la encuesta
         Survey survey = surveyRepository.findById(ratingRequest.surveyId())
                 .orElseThrow(() -> new IllegalArgumentException("Survey not found"));
 
-        User user = userRepository.findByEmail(principal.getName())
+        String email = principal.getName();
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Rating existingRating = ratingRepository.findBySurveyIdAndUserId(ratingRequest.surveyId(), user.getId());

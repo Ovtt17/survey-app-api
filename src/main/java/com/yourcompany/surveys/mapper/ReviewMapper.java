@@ -30,6 +30,11 @@ public class ReviewMapper {
                         Rating.builder()
                                 .id(reviewRequest.rating().id())
                                 .rating(reviewRequest.rating().rating())
+                                .survey(
+                                        Survey.builder()
+                                                .id(reviewRequest.rating().surveyId())
+                                                .build()
+                                )
                                 .build()
                 )
                 .user(user)
@@ -43,7 +48,7 @@ public class ReviewMapper {
                 review.getContent(),
                 review.getSurvey().getId(),
                 ratingMapper.toResponse(review.getRating()),
-                review.getUser().getUsername(),
+                review.getUser().getName(),
                 review.getCreatedDate()
         );
     }

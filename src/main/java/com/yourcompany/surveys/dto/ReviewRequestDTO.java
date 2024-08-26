@@ -12,8 +12,6 @@ public record ReviewRequestDTO (
         @NotNull(message = "El id de la encuesta es obligatorio")
         Long surveyId,
         @NotNull(message = "El rating es obligatorio")
-        RatingRequestDTO rating,
-        @NotBlank(message = "El nombre de usuario del creador es obligatorio")
-        String author
+        RatingRequestDTO rating
 ) {
 }
