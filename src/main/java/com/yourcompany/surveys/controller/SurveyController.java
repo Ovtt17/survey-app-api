@@ -1,8 +1,8 @@
 package com.yourcompany.surveys.controller;
 
+import com.yourcompany.surveys.dto.participant.ParticipantResponse;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
-import com.yourcompany.surveys.dto.user.UserResponse;
 import com.yourcompany.surveys.service.SurveyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -55,8 +55,8 @@ public class SurveyController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/{id}/users")
-    public ResponseEntity<List<UserResponse>> getSurveyUsers(@PathVariable Long id) {
-        return ResponseEntity.ok(surveyService.getSurveyUsers(id));
+    @GetMapping("/{id}/participants")
+    public ResponseEntity<List<ParticipantResponse>> getSurveyParticipants(@PathVariable Long id) {
+        return ResponseEntity.ok(surveyService.getSurveyParticipants(id));
     }
 }

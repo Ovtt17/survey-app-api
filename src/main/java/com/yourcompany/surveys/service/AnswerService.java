@@ -3,9 +3,12 @@ package com.yourcompany.surveys.service;
 import com.yourcompany.surveys.dto.answer.AnswerRequestDTO;
 import com.yourcompany.surveys.dto.answer.AnswerResponse;
 import com.yourcompany.surveys.entity.Answer;
+import com.yourcompany.surveys.entity.Participant;
+import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.mapper.AnswerMapper;
 import com.yourcompany.surveys.repository.AnswerRepository;
+import com.yourcompany.surveys.repository.ParticipantRepository;
 import com.yourcompany.surveys.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ public class AnswerService {
     private final AnswerRepository answerRepository;
     private final AnswerMapper answerMapper;
     private final UserRepository userRepository;
+    private final ParticipantRepository participantRepository;
 
     public List<AnswerResponse> findAll() {
         List<Answer> answers = answerRepository.findAll();
@@ -33,18 +37,32 @@ public class AnswerService {
         return answer.map(answerMapper::toResponse);
     }
 
-    public AnswerResponse save(AnswerRequestDTO answer, Principal principal) {
-        String username = principal.getName();
-        Optional<User> user = userRepository.findByEmail(username);
-        User creator = user.orElseThrow();
-        Answer newAnswer = answerMapper.toEntity(answer);
-        newAnswer.setUser(creator);
-        newAnswer = answerRepository.save(newAnswer);
-        return answerMapper.toResponse(newAnswer);
+    public void save(List<AnswerRequestDTO> answers, Principal principal) {
+        String email = principal.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Survey survey = null;
+        for (AnswerRequestDTO a : answers) {
+            Answer newAnswer = answerMapper.toEntity(a, user);
+            answerRepository.save(newAnswer);
+            if (survey == null) {
+                survey = newAnswer.getSurvey();
+            }
+        }
+
+        Participant participant = Participant.builder()
+                .user(user)
+                .survey(survey)
+                .build();
+        participantRepository.save(participant);
     }
 
-    public AnswerResponse update(Long id, AnswerRequestDTO answer) {
-        Answer answerEntity = answerMapper.toEntity(answer);
+    public AnswerResponse update(Long id, AnswerRequestDTO answer, Principal principal) {
+        String email = principal.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Answer answerEntity = answerMapper.toEntity(answer, user);
         answerEntity.setId(id);
         answerRepository.save(answerEntity);
         return answerMapper.toResponse(answerEntity);

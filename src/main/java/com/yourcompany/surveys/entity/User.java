@@ -71,7 +71,7 @@ public class User implements UserDetails, Principal {
     private List<Review> reviews;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Participation> participations;
+    private List<Participant> participants;
 
     @OneToMany(
             mappedBy = "user",

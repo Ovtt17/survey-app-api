@@ -5,6 +5,7 @@ import com.yourcompany.surveys.dto.answer.AnswerResponse;
 import com.yourcompany.surveys.entity.Answer;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.Survey;
+import com.yourcompany.surveys.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,7 @@ public class AnswerMapper {
                 answer.getAnswerText()
         );
     }
-    public Answer toEntity(AnswerRequestDTO answerRequest) {
+    public Answer toEntity(AnswerRequestDTO answerRequest, User user) {
         return Answer.builder()
                 .id(answerRequest.id())
                 .survey(
@@ -32,6 +33,7 @@ public class AnswerMapper {
                                 .id(answerRequest.questionId())
                                 .build()
                 )
+                .user(user)
                 .answerText(answerRequest.answerText())
                 .build();
     }

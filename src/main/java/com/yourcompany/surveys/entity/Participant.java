@@ -3,6 +3,7 @@ package com.yourcompany.surveys.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +14,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "participations")
-public class Participation {
+@EntityListeners(AuditingEntityListener.class)
+public class Participant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,5 +30,5 @@ public class Participation {
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private LocalDateTime participationDate;
+    private LocalDateTime participatedDate;
 }

@@ -11,8 +11,6 @@ import java.util.List;
 
 @Repository
 public interface AnswerRepository extends JpaRepository<Answer, Long> {
-    List<Answer> findBySurveyId(Long surveyId);
-
     @Query("SELECT new com.yourcompany.surveys.dto.report.SurveyReportResponse(" +
             "q.id, q.text, a.id, a.answerText, u.id, u.username) " +
             "FROM Answer a " +
