@@ -4,6 +4,7 @@ import com.yourcompany.surveys.dto.answer.AnswerRequestDTO;
 import com.yourcompany.surveys.dto.answer.AnswerResponse;
 import com.yourcompany.surveys.service.AnswerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,5 +56,14 @@ public class AnswerController {
     public ResponseEntity<Void> deleteAnswer(@PathVariable Long id) {
         answerService.delete(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/{surveyId}/{userId}/{participationId}")
+    public ResponseEntity<List<AnswerResponse>> getAnswersBySurveyAndUser(
+            @PathVariable @Valid Long surveyId,
+            @PathVariable @Valid Long userId,
+            @PathVariable @Valid Long participationId
+    ) {
+        return ResponseEntity.ok(answerService.findBySurveyIdAndUserIdAndParticipationId(surveyId, userId, participationId));
     }
 }

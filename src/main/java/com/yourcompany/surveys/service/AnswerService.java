@@ -70,4 +70,11 @@ public class AnswerService {
     public void delete(Long id) {
         answerRepository.deleteById(id);
     }
+
+    public List<AnswerResponse> findBySurveyIdAndUserIdAndParticipationId(Long surveyId, Long userId, Long participationId) {
+        List<Answer> answers = answerRepository.findBySurveyIdAndUserIdAndParticipationId(surveyId, userId, participationId);
+        return answers.stream()
+                .map(answerMapper::toResponse)
+                .toList();
+    }
 }

@@ -16,8 +16,11 @@ public class AnswerMapper {
         return new AnswerResponse(
                 answer.getId(),
                 answer.getSurvey().getId(),
+                answer.getSurvey().getTitle(),
                 answer.getQuestion().getId(),
-                answer.getAnswerText()
+                answer.getQuestion().getText(),
+                answer.getAnswerText(),
+                answer.getParticipation().getId()
         );
     }
     public Answer toEntity(AnswerRequestDTO answerRequest, User user) {

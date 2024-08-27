@@ -20,4 +20,5 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
             "ORDER BY u.id, q.id "
     )
     List<SurveyReportResponse> findByAnswerBySurveyId(@Param("surveyId") Long surveyId);
+    List<Answer> findBySurveyIdAndUserIdAndParticipationId(Long surveyId, Long userId, Long participationId);
 }
