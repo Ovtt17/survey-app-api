@@ -29,4 +29,8 @@ public class Answer {
     @ManyToOne
     @JoinColumn(name = "survey_id", nullable = false)
     private Survey survey;
+
+    @ManyToOne
+    @JoinColumn(name = "participation_id", nullable = false)
+    private Participation participation;
 }
