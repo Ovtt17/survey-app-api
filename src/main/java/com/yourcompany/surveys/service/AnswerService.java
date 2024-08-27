@@ -42,20 +42,19 @@ public class AnswerService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Survey survey = null;
-        for (AnswerRequestDTO a : answers) {
-            Answer newAnswer = answerMapper.toEntity(a, user);
-            answerRepository.save(newAnswer);
-            if (survey == null) {
-                survey = newAnswer.getSurvey();
-            }
-        }
+        Survey survey = Survey.builder().id(answers.get(0).surveyId()).build();
 
         Participation participation = Participation.builder()
                 .user(user)
                 .survey(survey)
                 .build();
         participationRepository.save(participation);
+
+        for (AnswerRequestDTO a : answers) {
+            Answer newAnswer = answerMapper.toEntity(a, user);
+            newAnswer.setParticipation(participation);
+            answerRepository.save(newAnswer);
+        }
     }
 
     public AnswerResponse update(Long id, AnswerRequestDTO answer, Principal principal) {
