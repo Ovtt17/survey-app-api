@@ -31,22 +31,22 @@ public class ExcelReportService {
             Sheet sheet = workbook.createSheet("Survey Responses Report");
 
             Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue("Question ID");
-            headerRow.createCell(1).setCellValue("Question Text");
-            headerRow.createCell(2).setCellValue("Answer ID");
-            headerRow.createCell(3).setCellValue("Answer Text");
-            headerRow.createCell(4).setCellValue("User ID");
-            headerRow.createCell(5).setCellValue("User Name");
+            headerRow.createCell(0).setCellValue("User ID");
+            headerRow.createCell(1).setCellValue("User Name");
+            headerRow.createCell(2).setCellValue("Question ID");
+            headerRow.createCell(3).setCellValue("Question Text");
+            headerRow.createCell(4).setCellValue("Answer ID");
+            headerRow.createCell(5).setCellValue("Answer Text");
 
             int rowIdx = 1;
             for (SurveyReportResponse response : responses) {
                 Row row = sheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(response.questionId());
-                row.createCell(1).setCellValue(response.questionText());
-                row.createCell(2).setCellValue(response.answerId());
-                row.createCell(3).setCellValue(response.answerText());
-                row.createCell(4).setCellValue(response.userId());
-                row.createCell(5).setCellValue(response.userName());
+                row.createCell(0).setCellValue(response.userId());
+                row.createCell(1).setCellValue(response.userName());
+                row.createCell(2).setCellValue(response.questionId());
+                row.createCell(3).setCellValue(response.questionText());
+                row.createCell(4).setCellValue(response.answerId());
+                row.createCell(5).setCellValue(response.answerText());
             }
 
             // Ajustar el ancho de las columnas
