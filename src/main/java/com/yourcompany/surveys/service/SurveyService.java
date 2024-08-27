@@ -1,16 +1,14 @@
 package com.yourcompany.surveys.service;
 
-import com.yourcompany.surveys.dto.participant.ParticipantResponse;
+import com.yourcompany.surveys.dto.participation.ParticipationResponse;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.entity.*;
-import com.yourcompany.surveys.mapper.ParticipantMapper;
+import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;
 import com.yourcompany.surveys.mapper.SurveyMapper;
-import com.yourcompany.surveys.mapper.UserMapper;
-import com.yourcompany.surveys.repository.AnswerRepository;
-import com.yourcompany.surveys.repository.ParticipantRepository;
+import com.yourcompany.surveys.repository.ParticipationRepository;
 import com.yourcompany.surveys.repository.SurveyRepository;
 import com.yourcompany.surveys.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -31,10 +29,8 @@ public class SurveyService {
     private final SurveyMapper surveyMapper;
     private final UserRepository userRepository;
     private final QuestionMapper questionMapper;
-    private final AnswerRepository answerRepository;
-    private final UserMapper userMapper;
-    private final ParticipantRepository participantRepository;
-    private final ParticipantMapper participantMapper;
+    private final ParticipationRepository participationRepository;
+    private final ParticipationMapper participationMapper;
 
     public List<SurveyResponse> findAll() {
         List<Survey> surveys = surveyRepository.findAll();
@@ -107,10 +103,10 @@ public class SurveyService {
         surveyRepository.deleteById(id);
     }
 
-    public List<ParticipantResponse> getSurveyParticipants(Long id) {
-        List<Participant> participants = participantRepository.findBySurveyId(id);
-        return participants.stream()
-                .map(participantMapper::toResponse)
+    public List<ParticipationResponse> getSurveyParticipants(Long id) {
+        List<Participation> participations = participationRepository.findBySurveyId(id);
+        return participations.stream()
+                .map(participationMapper::toResponse)
                 .toList();
     }
 }

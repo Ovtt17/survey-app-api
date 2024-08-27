@@ -3,12 +3,12 @@ package com.yourcompany.surveys.service;
 import com.yourcompany.surveys.dto.answer.AnswerRequestDTO;
 import com.yourcompany.surveys.dto.answer.AnswerResponse;
 import com.yourcompany.surveys.entity.Answer;
-import com.yourcompany.surveys.entity.Participant;
+import com.yourcompany.surveys.entity.Participation;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.mapper.AnswerMapper;
 import com.yourcompany.surveys.repository.AnswerRepository;
-import com.yourcompany.surveys.repository.ParticipantRepository;
+import com.yourcompany.surveys.repository.ParticipationRepository;
 import com.yourcompany.surveys.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ public class AnswerService {
     private final AnswerRepository answerRepository;
     private final AnswerMapper answerMapper;
     private final UserRepository userRepository;
-    private final ParticipantRepository participantRepository;
+    private final ParticipationRepository participationRepository;
 
     public List<AnswerResponse> findAll() {
         List<Answer> answers = answerRepository.findAll();
@@ -51,11 +51,11 @@ public class AnswerService {
             }
         }
 
-        Participant participant = Participant.builder()
+        Participation participation = Participation.builder()
                 .user(user)
                 .survey(survey)
                 .build();
-        participantRepository.save(participant);
+        participationRepository.save(participation);
     }
 
     public AnswerResponse update(Long id, AnswerRequestDTO answer, Principal principal) {

@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.controller;
 
-import com.yourcompany.surveys.dto.participant.ParticipantResponse;
+import com.yourcompany.surveys.dto.participation.ParticipationResponse;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.service.SurveyService;
@@ -56,7 +56,7 @@ public class SurveyController {
     }
 
     @GetMapping("/{id}/participants")
-    public ResponseEntity<List<ParticipantResponse>> getSurveyParticipants(@PathVariable Long id) {
+    public ResponseEntity<List<ParticipationResponse>> getSurveyParticipants(@PathVariable Long id) {
         return ResponseEntity.ok(surveyService.getSurveyParticipants(id));
     }
 }

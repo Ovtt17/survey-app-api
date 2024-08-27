@@ -1,12 +1,12 @@
 package com.yourcompany.surveys.repository;
 
-import com.yourcompany.surveys.entity.Participant;
+import com.yourcompany.surveys.entity.Participation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ParticipantRepository extends JpaRepository<Participant, Long> {
-    List<Participant> findBySurveyId(Long surveyId);
+public interface ParticipationRepository extends JpaRepository<Participation, Long> {
+    List<Participation> findBySurveyId(Long surveyId);
 }

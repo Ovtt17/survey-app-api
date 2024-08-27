@@ -33,13 +33,20 @@ public class AnswerController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createAnswer(@RequestBody List<AnswerRequestDTO> answers, Principal principal) {
+    public ResponseEntity<Void> createAnswer(
+            @RequestBody List<AnswerRequestDTO> answers,
+            Principal principal
+    ) {
         answerService.save(answers, principal);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AnswerResponse> updateAnswer(@PathVariable Long id, @RequestBody AnswerRequestDTO answer, Principal principal) {
+    public ResponseEntity<AnswerResponse> updateAnswer(
+            @PathVariable Long id,
+            @RequestBody AnswerRequestDTO answer,
+            Principal principal
+    ) {
         AnswerResponse updatedAnswer = answerService.update(id, answer, principal);
         return new ResponseEntity<>(updatedAnswer, HttpStatus.OK);
     }
