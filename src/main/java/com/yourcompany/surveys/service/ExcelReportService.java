@@ -1,9 +1,7 @@
 package com.yourcompany.surveys.service;
 
 import com.yourcompany.surveys.dto.participation.ParticipationResponse;
-import com.yourcompany.surveys.dto.report.PopularSurveyReportResponse;
-import com.yourcompany.surveys.dto.report.ResponseTrendReportResponse;
-import com.yourcompany.surveys.dto.report.SurveyReportResponse;
+import com.yourcompany.surveys.dto.report.*;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.repository.AnswerRepository;
 import com.yourcompany.surveys.repository.ParticipationRepository;
@@ -43,19 +41,15 @@ public class ExcelReportService {
     }
 
     public ResponseEntity<byte[]> generateReport(Long reportId, Optional<Long> surveyId, Principal principal) {
-        try {
-            return switch (reportId.intValue()) {
-                case 1 -> generateSurveyAnswersReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
-                case 2 -> generateUserParticipationReport(principal);
-                case 3 -> generateResponseTrendsReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
-                case 4 -> generatePopularSurveysReport(principal);
-                case 5 -> generateUserParticipationBySurveyReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
-                case 6 -> generateUserSatisfactionReport(principal);
-                default -> throw new IllegalArgumentException("Invalid report ID");
-            };
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating report", e);
-        }
+        return switch (reportId.intValue()) {
+            case 1 -> generateSurveyAnswersReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
+            case 2 -> generateUserParticipationReport(principal);
+            case 3 -> generateResponseTrendsReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
+            case 4 -> generatePopularSurveysReport(principal);
+            case 5 -> generateParticipationCountOnUserSurveys(principal);
+            case 6 -> generateUserSatisfactionReport(principal);
+            default -> throw new IllegalArgumentException("Invalid report ID");
+        };
     }
 
     public ResponseEntity<byte[]> generateSurveyAnswersReport(Long surveyId, Principal principal) {
@@ -103,130 +97,230 @@ public class ExcelReportService {
         }
     }
 
-    private ResponseEntity<byte[]> generateUserParticipationReport(Principal principal) throws IOException {
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    private ResponseEntity<byte[]> generateUserParticipationReport(Principal principal) {
+        try {
+            String email = principal.getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<ParticipationResponse> responses = participationRepository.findAllUserParticipationsByUserId(user.getId());
+            List<ParticipationResponse> responses = participationRepository.findAllUserParticipationsByUserId(user.getId());
 
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("User Participation Report");
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("User Participation Report");
 
-        String[] columnNames = {"User ID", "User Name", "Survey ID", "Survey Title", "Participation Date"};
-        createHeaderRow(sheet, columnNames);
+            String[] columnNames = {"User ID", "User Name", "Survey ID", "Survey Title", "Participation Date"};
+            createHeaderRow(sheet, columnNames);
 
-        int rowIdx = 1;
-        for (ParticipationResponse response : responses) {
-            Row row = sheet.createRow(rowIdx++);
-            row.createCell(0).setCellValue(response.userId());
-            row.createCell(1).setCellValue(response.username());
-            row.createCell(2).setCellValue(response.surveyId());
-            row.createCell(3).setCellValue(response.surveyTitle());
-            row.createCell(4).setCellValue(response.participatedDate().toString());
+            int rowIdx = 1;
+            for (ParticipationResponse response : responses) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(response.userId());
+                row.createCell(1).setCellValue(response.username());
+                row.createCell(2).setCellValue(response.surveyId());
+                row.createCell(3).setCellValue(response.surveyTitle());
+                row.createCell(4).setCellValue(response.participatedDate().toString());
+            }
+
+            for (int i = 0; i < columnNames.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            workbook.close();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDispositionFormData("attachment", "user_participation_report.xlsx");
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .body(outputStream.toByteArray());
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating user participation report", e);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
+    }
+    private ResponseEntity<byte[]> generateResponseTrendsReport(Long surveyId, Principal principal) {
+        try {
+            String email = principal.getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        for (int i = 0; i < 5; i++) {
-            sheet.autoSizeColumn(i);
+            List<ResponseTrendReportResponse> responseTrends = answerRepository.findResponseTrendsBySurveyIdAndUserId(surveyId, user.getId());
+
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("Response Trends Report");
+
+            String[] columnNames = {"Question ID", "Question Text", "Answer Text", "Frequency"};
+            createHeaderRow(sheet, columnNames);
+
+            int rowIdx = 1;
+            for (ResponseTrendReportResponse trend : responseTrends) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(trend.questionId());
+                row.createCell(1).setCellValue(trend.questionText());
+                row.createCell(2).setCellValue(trend.answerText());
+                row.createCell(3).setCellValue(trend.frequency());
+            }
+
+            for (int i = 0; i < columnNames.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            workbook.close();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDispositionFormData("attachment", "response_trends_report.xlsx");
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .body(outputStream.toByteArray());
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating response trends report", e);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        workbook.write(outputStream);
-        workbook.close();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentDispositionFormData("attachment", "user_participation_report.xlsx");
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .body(outputStream.toByteArray());
     }
 
-    private ResponseEntity<byte[]> generateResponseTrendsReport(Long surveyId, Principal principal) throws IOException {
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    private ResponseEntity<byte[]> generatePopularSurveysReport(Principal principal) {
+        try {
+            String email = principal.getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<ResponseTrendReportResponse> responseTrends = answerRepository.findResponseTrendsBySurveyIdAndUserId(surveyId, user.getId());
+            List<PopularSurveyReportResponse> popularSurveys = surveyRepository.findPopularSurveysByUserId(user.getId());
 
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Response Trends Report");
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("Popular Surveys Report");
 
-        String[] columnNames = {"Question ID", "Question Text", "Answer Text", "Frequency"};
-        createHeaderRow(sheet, columnNames);
+            String[] columnNames = {"Survey ID", "Survey Title", "Participation Count"};
+            createHeaderRow(sheet, columnNames);
 
-        int rowIdx = 1;
-        for (ResponseTrendReportResponse trend : responseTrends) {
-            Row row = sheet.createRow(rowIdx++);
-            row.createCell(0).setCellValue(trend.questionId());
-            row.createCell(1).setCellValue(trend.questionText());
-            row.createCell(2).setCellValue(trend.answerText());
-            row.createCell(3).setCellValue(trend.frequency());
+            int rowIdx = 1;
+            for (PopularSurveyReportResponse survey : popularSurveys) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(survey.surveyId());
+                row.createCell(1).setCellValue(survey.surveyTitle());
+                row.createCell(2).setCellValue(survey.participationCount());
+            }
+
+            for (int i = 0; i < columnNames.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            workbook.close();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDispositionFormData("attachment", "popular_surveys_report.xlsx");
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .body(outputStream.toByteArray());
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating popular surveys report", e);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
-
-        for (int i = 0; i < columnNames.length; i++) {
-            sheet.autoSizeColumn(i);
-        }
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        workbook.write(outputStream);
-        workbook.close();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentDispositionFormData("attachment", "response_trends_report.xlsx");
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .body(outputStream.toByteArray());
     }
 
-    private ResponseEntity<byte[]> generatePopularSurveysReport(Principal principal) throws IOException {
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    private ResponseEntity<byte[]> generateParticipationCountOnUserSurveys(Principal principal) {
+        try {
+            String email = principal.getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<PopularSurveyReportResponse> popularSurveys = surveyRepository.findPopularSurveysByUserId(user.getId());
+            List<UserSurveyParticipationCountResponse> participations = surveyRepository.findParticipationCountByCreatorId(user.getId());
 
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Popular Surveys Report");
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("User Survey Participation Count Report");
 
-        String[] columnNames = {"Survey ID", "Survey Title", "Participation Count"};
-        createHeaderRow(sheet, columnNames);
+            String[] columnNames = {"Survey ID", "Survey Title", "Participation Count"};
+            createHeaderRow(sheet, columnNames);
 
-        int rowIdx = 1;
-        for (PopularSurveyReportResponse survey : popularSurveys) {
-            Row row = sheet.createRow(rowIdx++);
-            row.createCell(0).setCellValue(survey.surveyId());
-            row.createCell(1).setCellValue(survey.surveyTitle());
-            row.createCell(2).setCellValue(survey.participationCount());
+            int rowIdx = 1;
+            for (UserSurveyParticipationCountResponse participation : participations) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(participation.surveyId());
+                row.createCell(1).setCellValue(participation.surveyTitle());
+                row.createCell(2).setCellValue(participation.participationCount());
+            }
+
+            for (int i = 0; i < columnNames.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            workbook.close();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDispositionFormData("attachment", "user_survey_participation_count_report.xlsx");
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .body(outputStream.toByteArray());
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating user survey participation count report", e);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
-
-        for (int i = 0; i < columnNames.length; i++) {
-            sheet.autoSizeColumn(i);
-        }
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        workbook.write(outputStream);
-        workbook.close();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentDispositionFormData("attachment", "popular_surveys_report.xlsx");
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .body(outputStream.toByteArray());
-    }
-    private ResponseEntity<byte[]> generateUserParticipationBySurveyReport(Long surveyId, Principal principal) {
-        return null;
     }
 
     private ResponseEntity<byte[]> generateUserSatisfactionReport(Principal principal) {
-        return null;
+        try {
+            String email = principal.getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            List<UserSatisfactionReportResponse> satisfactions = surveyRepository.findUserSatisfactionByCreatorId(user.getId());
+
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("User Satisfaction Report");
+
+            String[] columnNames = {"Survey ID", "Survey Title", "Average Satisfaction"};
+            createHeaderRow(sheet, columnNames);
+
+            int rowIdx = 1;
+            for (UserSatisfactionReportResponse satisfaction : satisfactions) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(satisfaction.surveyId());
+                row.createCell(1).setCellValue(satisfaction.surveyTitle());
+                row.createCell(2).setCellValue(satisfaction.averageSatisfaction());
+            }
+
+            for (int i = 0; i < columnNames.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            workbook.close();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDispositionFormData("attachment", "user_satisfaction_report.xlsx");
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .body(outputStream.toByteArray());
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating user satisfaction report", e);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
     }
 }
