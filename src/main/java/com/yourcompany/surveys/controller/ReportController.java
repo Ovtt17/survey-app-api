@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/reports")
 @RequiredArgsConstructor
@@ -14,9 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 public class ReportController {
     private final ExcelReportService excelService;
 
-    @GetMapping("/survey-answers")
-    public ResponseEntity<byte[]> getSurveyAnswersReport(@RequestParam Long surveyId)  {
-        return excelService.generateSurveyAnswersReport(surveyId);
+    @GetMapping("/{reportId}/{surveyId}")
+    public ResponseEntity<byte[]> getReport(@PathVariable Long reportId, @PathVariable Long surveyId, Principal principal) {
+        return excelService.generateReport(reportId, surveyId, principal);
     }
 
     @ExceptionHandler(ResponseStatusException.class)

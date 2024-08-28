@@ -17,8 +17,9 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
             "JOIN a.question q " +
             "JOIN a.user u " +
             "WHERE a.survey.id = :surveyId " +
+            "AND a.user.id = :userId " +
             "ORDER BY u.id, q.id "
     )
-    List<SurveyReportResponse> findByAnswerBySurveyId(@Param("surveyId") Long surveyId);
+    List<SurveyReportResponse> findByAnswerBySurveyIdAndUserId(@Param("surveyId") Long surveyId, @Param("userId") Long userId);
     List<Answer> findBySurveyIdAndUserIdAndParticipationId(Long surveyId, Long userId, Long participationId);
 }
