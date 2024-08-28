@@ -27,12 +27,13 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
     List<PopularSurveyReportResponse> findPopularSurveysByUserId(@Param("userId") Long userId);
 
     @Query("SELECT new com.yourcompany.surveys.dto.report.UserSurveyParticipationCountResponse(" +
-            "s.id, s.title, COUNT(p.id)) " +
+            "s.id, s.title, u.id, u.username, COUNT(p.id)) " +
             "FROM Survey s " +
             "JOIN s.participations p " +
+            "JOIN p.user u " +
             "WHERE s.creator.id = :creatorId " +
-            "GROUP BY s.id, s.title " +
-            "ORDER BY COUNT(p.id) DESC"
+            "GROUP BY s.id, s.title, u.id, u.username " +
+            "ORDER BY s.id, COUNT(p.id) DESC"
     )
     List<UserSurveyParticipationCountResponse> findParticipationCountByCreatorId(@Param("creatorId") Long creatorId);
 

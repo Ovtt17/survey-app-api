@@ -60,9 +60,9 @@ public class ExcelReportService {
             List<SurveyReportResponse> responses = answerRepository.findByAnswerBySurveyIdAndUserId(surveyId, user.getId());
 
             Workbook workbook = new XSSFWorkbook();
-            Sheet sheet = workbook.createSheet("Survey Responses Report");
+            Sheet sheet = workbook.createSheet("Informe de Respuestas de Encuesta");
 
-            String[] columnNames = {"User ID", "User Name", "Question ID", "Question Text", "Answer ID", "Answer Text"};
+            String[] columnNames = {"ID de Usuario", "Nombre de Usuario", "ID de Pregunta", "Texto de Pregunta", "ID de Respuesta", "Texto de Respuesta"};
             createHeaderRow(sheet, columnNames);
 
             int rowIdx = 1;
@@ -198,9 +198,9 @@ public class ExcelReportService {
             List<PopularSurveyReportResponse> popularSurveys = surveyRepository.findPopularSurveysByUserId(user.getId());
 
             Workbook workbook = new XSSFWorkbook();
-            Sheet sheet = workbook.createSheet("Popular Surveys Report");
+            Sheet sheet = workbook.createSheet("Informe de Encuestas Populares");
 
-            String[] columnNames = {"Survey ID", "Survey Title", "Participation Count"};
+            String[] columnNames = {"ID de Encuesta", "Título de Encuesta", "Cantidad de Participaciones"};
             createHeaderRow(sheet, columnNames);
 
             int rowIdx = 1;
@@ -243,9 +243,9 @@ public class ExcelReportService {
             List<UserSurveyParticipationCountResponse> participations = surveyRepository.findParticipationCountByCreatorId(user.getId());
 
             Workbook workbook = new XSSFWorkbook();
-            Sheet sheet = workbook.createSheet("User Survey Participation Count Report");
+            Sheet sheet = workbook.createSheet("Informe de Conteo de Participación en Encuestas de Usuario");
 
-            String[] columnNames = {"Survey ID", "Survey Title", "Participation Count"};
+            String[] columnNames = {"ID de Encuesta", "Título de Encuesta", "ID de Usuario", "Username", "Cantidad de Participaciones"};
             createHeaderRow(sheet, columnNames);
 
             int rowIdx = 1;
@@ -253,7 +253,9 @@ public class ExcelReportService {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(participation.surveyId());
                 row.createCell(1).setCellValue(participation.surveyTitle());
-                row.createCell(2).setCellValue(participation.participationCount());
+                row.createCell(2).setCellValue(participation.userId());
+                row.createCell(3).setCellValue(participation.username());
+                row.createCell(4).setCellValue(participation.participationCount());
             }
 
             for (int i = 0; i < columnNames.length; i++) {
@@ -288,9 +290,9 @@ public class ExcelReportService {
             List<UserSatisfactionReportResponse> satisfactions = surveyRepository.findUserSatisfactionByCreatorId(user.getId());
 
             Workbook workbook = new XSSFWorkbook();
-            Sheet sheet = workbook.createSheet("User Satisfaction Report");
+            Sheet sheet = workbook.createSheet("Informe de Satisfacción del Usuario");
 
-            String[] columnNames = {"Survey ID", "Survey Title", "Average Satisfaction"};
+            String[] columnNames = {"ID de Encuesta", "Título de Encuesta", "Satisfacción Promedio"};
             createHeaderRow(sheet, columnNames);
 
             int rowIdx = 1;
