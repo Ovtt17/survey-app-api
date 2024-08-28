@@ -9,6 +9,7 @@ public record ReviewResponse (
         String title,
         String content,
         Long surveyId,
+        String surveyTitle,
         RatingResponse rating,
         String author,
         LocalDateTime createdDate

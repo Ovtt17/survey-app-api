@@ -2,11 +2,11 @@ package com.yourcompany.surveys.service;
 
 import com.yourcompany.surveys.dto.participation.ParticipationResponse;
 import com.yourcompany.surveys.dto.report.*;
+import com.yourcompany.surveys.dto.review.ReviewResponse;
+import com.yourcompany.surveys.entity.Review;
 import com.yourcompany.surveys.entity.User;
-import com.yourcompany.surveys.repository.AnswerRepository;
-import com.yourcompany.surveys.repository.ParticipationRepository;
-import com.yourcompany.surveys.repository.SurveyRepository;
-import com.yourcompany.surveys.repository.UserRepository;
+import com.yourcompany.surveys.mapper.ReviewMapper;
+import com.yourcompany.surveys.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -32,6 +32,8 @@ public class ExcelReportService {
     private final ParticipationRepository participationRepository;
     private final UserRepository userRepository;
     private final SurveyRepository surveyRepository;
+    private final ReviewRepository reviewRepository;
+    private final ReviewMapper reviewMapper;
 
     private void createHeaderRow(Sheet sheet, String[] columnNames) {
         Row headerRow = sheet.createRow(0);
@@ -48,6 +50,7 @@ public class ExcelReportService {
             case 4 -> generatePopularSurveysReport(principal);
             case 5 -> generateParticipationCountOnUserSurveys(principal);
             case 6 -> generateUserSatisfactionReport(principal);
+            case 7 -> generateUserReviewsReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
             default -> throw new IllegalArgumentException("Invalid report ID");
         };
     }
@@ -321,6 +324,58 @@ public class ExcelReportService {
                     .body(outputStream.toByteArray());
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating user satisfaction report", e);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
+    }
+
+    private ResponseEntity<byte[]> generateUserReviewsReport(Long surveyId, Principal principal) {
+        try {
+            String email = principal.getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            List<Review> reviews = reviewRepository.findBySurveyIdAndUserId(surveyId, user.getId());
+            List<ReviewResponse> reviewResponses = reviews.stream()
+                    .map(reviewMapper::toResponse)
+                    .toList();
+
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("User Reviews Report");
+
+            String[] columnNames = {"Review ID", "Title", "Content", "Rating", "Survey ID", "Survey Title", "Created Date"};
+            createHeaderRow(sheet, columnNames);
+
+            int rowIdx = 1;
+            for (ReviewResponse review : reviewResponses) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(review.id());
+                row.createCell(1).setCellValue(review.title());
+                row.createCell(2).setCellValue(review.content());
+                row.createCell(3).setCellValue(review.rating().rating());
+                row.createCell(4).setCellValue(review.surveyId());
+                row.createCell(5).setCellValue(review.surveyTitle());
+                row.createCell(6).setCellValue(review.createdDate().toString());
+            }
+
+            for (int i = 0; i < columnNames.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            workbook.close();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDispositionFormData("attachment", "user_reviews_report.xlsx");
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .body(outputStream.toByteArray());
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating user reviews report", e);
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }

@@ -47,6 +47,7 @@ public class ReviewMapper {
                 review.getTitle(),
                 review.getContent(),
                 review.getSurvey().getId(),
+                review.getSurvey().getTitle(),
                 ratingMapper.toResponse(review.getRating()),
                 review.getUser().getName(),
                 review.getCreatedDate()
