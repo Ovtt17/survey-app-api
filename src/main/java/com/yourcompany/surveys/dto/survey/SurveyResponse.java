@@ -1,4 +1,7 @@
-package com.yourcompany.surveys.dto;
+package com.yourcompany.surveys.dto.survey;
+
+import com.yourcompany.surveys.dto.question.QuestionResponse;
+import com.yourcompany.surveys.dto.user.UserResponse;
 
 import java.util.List;
 

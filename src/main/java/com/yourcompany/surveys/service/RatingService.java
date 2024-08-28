@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.service;
 
-import com.yourcompany.surveys.dto.RatingRequestDTO;
+import com.yourcompany.surveys.dto.rating.RatingRequestDTO;
 import com.yourcompany.surveys.entity.Rating;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
@@ -24,12 +24,12 @@ public class RatingService {
     private final SurveyRepository surveyRepository;
 
     @Transactional
-    public void createOrUpdateRating(@Valid RatingRequestDTO ratingRequest, Principal principal) {
-        // Buscar la encuesta
+    public Rating createOrUpdateRating(@Valid RatingRequestDTO ratingRequest, Principal principal) {
         Survey survey = surveyRepository.findById(ratingRequest.surveyId())
                 .orElseThrow(() -> new IllegalArgumentException("Survey not found"));
 
-        User user = userRepository.findByEmail(principal.getName())
+        String email = principal.getName();
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Rating existingRating = ratingRepository.findBySurveyIdAndUserId(ratingRequest.surveyId(), user.getId());
@@ -50,8 +50,9 @@ public class RatingService {
             survey.setAverageRating(
                     ((survey.getAverageRating() * (survey.getRatingCount() - 1)) + rating.getRating()) / survey.getRatingCount()
             );
-            ratingRepository.save(rating);
+            return ratingRepository.save(rating);
         }
         surveyRepository.save(survey);
+        return existingRating;
     }
 }

@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.controller;
 
-import com.yourcompany.surveys.dto.RatingRequestDTO;
+import com.yourcompany.surveys.dto.rating.RatingRequestDTO;
 import com.yourcompany.surveys.service.RatingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

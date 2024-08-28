@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.mapper;
 
-import com.yourcompany.surveys.dto.UserResponse;
+import com.yourcompany.surveys.dto.user.UserResponse;
 import com.yourcompany.surveys.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

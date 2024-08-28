@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.controller;
 
-import com.yourcompany.surveys.dto.UserResponse;
+import com.yourcompany.surveys.dto.user.UserResponse;
 import com.yourcompany.surveys.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

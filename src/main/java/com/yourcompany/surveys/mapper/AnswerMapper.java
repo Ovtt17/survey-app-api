@@ -1,10 +1,11 @@
 package com.yourcompany.surveys.mapper;
 
-import com.yourcompany.surveys.dto.AnswerRequestDTO;
-import com.yourcompany.surveys.dto.AnswerResponse;
+import com.yourcompany.surveys.dto.answer.AnswerRequestDTO;
+import com.yourcompany.surveys.dto.answer.AnswerResponse;
 import com.yourcompany.surveys.entity.Answer;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.Survey;
+import com.yourcompany.surveys.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,11 +16,14 @@ public class AnswerMapper {
         return new AnswerResponse(
                 answer.getId(),
                 answer.getSurvey().getId(),
+                answer.getSurvey().getTitle(),
                 answer.getQuestion().getId(),
-                answer.getAnswerText()
+                answer.getQuestion().getText(),
+                answer.getAnswerText(),
+                answer.getParticipation().getId()
         );
     }
-    public Answer toEntity(AnswerRequestDTO answerRequest) {
+    public Answer toEntity(AnswerRequestDTO answerRequest, User user) {
         return Answer.builder()
                 .id(answerRequest.id())
                 .survey(
@@ -32,6 +36,7 @@ public class AnswerMapper {
                                 .id(answerRequest.questionId())
                                 .build()
                 )
+                .user(user)
                 .answerText(answerRequest.answerText())
                 .build();
     }

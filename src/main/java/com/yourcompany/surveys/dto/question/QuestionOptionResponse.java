@@ -1,4 +1,4 @@
-package com.yourcompany.surveys.dto;
+package com.yourcompany.surveys.dto.question;
 
 public record QuestionOptionResponse(
         Long id,

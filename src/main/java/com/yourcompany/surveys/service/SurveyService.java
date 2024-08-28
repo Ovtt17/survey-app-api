@@ -1,14 +1,14 @@
 package com.yourcompany.surveys.service;
 
-import com.yourcompany.surveys.dto.QuestionRequestDTO;
-import com.yourcompany.surveys.dto.SurveyRequestDTO;
-import com.yourcompany.surveys.dto.SurveyResponse;
-import com.yourcompany.surveys.entity.Question;
-import com.yourcompany.surveys.entity.QuestionType;
-import com.yourcompany.surveys.entity.Survey;
-import com.yourcompany.surveys.entity.User;
+import com.yourcompany.surveys.dto.participation.ParticipationResponse;
+import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
+import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
+import com.yourcompany.surveys.dto.survey.SurveyResponse;
+import com.yourcompany.surveys.entity.*;
+import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;
 import com.yourcompany.surveys.mapper.SurveyMapper;
+import com.yourcompany.surveys.repository.ParticipationRepository;
 import com.yourcompany.surveys.repository.SurveyRepository;
 import com.yourcompany.surveys.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -29,6 +29,8 @@ public class SurveyService {
     private final SurveyMapper surveyMapper;
     private final UserRepository userRepository;
     private final QuestionMapper questionMapper;
+    private final ParticipationRepository participationRepository;
+    private final ParticipationMapper participationMapper;
 
     public List<SurveyResponse> findAll() {
         List<Survey> surveys = surveyRepository.findAll();
@@ -43,10 +45,11 @@ public class SurveyService {
     }
 
     public List<SurveyResponse> getByUser(Principal principal) {
-        String username = principal.getName();
-        Optional<User> user = userRepository.findByEmail(username);
-        User creator = user.orElseThrow();
-        List<Survey> surveys = surveyRepository.findByCreator(creator);
+        String email = principal.getName();
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new IllegalArgumentException("User not found")
+        );
+        List<Survey> surveys = surveyRepository.findByCreator(user);
         return surveys.stream()
                 .map(surveyMapper::toResponse)
                 .toList();
@@ -54,11 +57,11 @@ public class SurveyService {
 
     @Transactional
     public SurveyResponse save(SurveyRequestDTO surveyRequest, Principal principal) {
-        String username = principal.getName();
-        Optional<User> user = userRepository.findByEmail(username);
-        User creator = user.orElseThrow();
-        Survey survey = surveyMapper.toEntity(surveyRequest);
-        survey.setCreator(creator);
+        String email = principal.getName();
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new IllegalArgumentException("User not found")
+        );
+        Survey survey = surveyMapper.toEntity(surveyRequest, user);
         survey = surveyRepository.save(survey);
         return surveyMapper.toResponse(survey);
     }
@@ -98,5 +101,12 @@ public class SurveyService {
 
     public void deleteById(Long id) {
         surveyRepository.deleteById(id);
+    }
+
+    public List<ParticipationResponse> getSurveyParticipants(Long id) {
+        List<Participation> participations = participationRepository.findBySurveyId(id);
+        return participations.stream()
+                .map(participationMapper::toResponse)
+                .toList();
     }
 }

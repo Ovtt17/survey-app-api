@@ -51,7 +51,7 @@ public class Survey {
     private List<Question> questions;
 
     @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ReviewRating> reviewRatings;
+    private List<Review> reviews;
 
     @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participation> participations;
