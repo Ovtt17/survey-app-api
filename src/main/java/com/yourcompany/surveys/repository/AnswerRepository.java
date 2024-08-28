@@ -1,5 +1,6 @@
 package com.yourcompany.surveys.repository;
 
+import com.yourcompany.surveys.dto.report.ResponseTrendReportResponse;
 import com.yourcompany.surveys.dto.report.SurveyReportResponse;
 import com.yourcompany.surveys.entity.Answer;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,5 +22,17 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
             "ORDER BY u.id, q.id "
     )
     List<SurveyReportResponse> findByAnswerBySurveyIdAndUserId(@Param("surveyId") Long surveyId, @Param("userId") Long userId);
+
+    @Query("SELECT new com.yourcompany.surveys.dto.report.ResponseTrendReportResponse(" +
+            "q.id, q.text, a.answerText, COUNT(a.id)) " +
+            "FROM Answer a " +
+            "JOIN a.question q " +
+            "WHERE a.survey.id = :surveyId " +
+            "AND a.user.id = :userId " +
+            "GROUP BY q.id, q.text, a.answerText " +
+            "ORDER BY q.id, COUNT(a.id) DESC"
+    )
+    List<ResponseTrendReportResponse> findResponseTrendsBySurveyIdAndUserId(@Param("surveyId") Long surveyId, @Param("userId") Long userId);
+
     List<Answer> findBySurveyIdAndUserIdAndParticipationId(Long surveyId, Long userId, Long participationId);
 }

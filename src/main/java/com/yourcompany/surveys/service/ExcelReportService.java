@@ -1,6 +1,7 @@
 package com.yourcompany.surveys.service;
 
 import com.yourcompany.surveys.dto.participation.ParticipationResponse;
+import com.yourcompany.surveys.dto.report.ResponseTrendReportResponse;
 import com.yourcompany.surveys.dto.report.SurveyReportResponse;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.repository.AnswerRepository;
@@ -22,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,14 +39,15 @@ public class ExcelReportService {
         }
     }
 
-    public ResponseEntity<byte[]> generateReport(Long reportId, Long surveyId, Principal principal) {
+    public ResponseEntity<byte[]> generateReport(Long reportId, Optional<Long> surveyId, Principal principal) {
         try {
             return switch (reportId.intValue()) {
-                case 1 -> generateSurveyAnswersReport(surveyId, principal);
+                case 1 -> generateSurveyAnswersReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
                 case 2 -> generateUserParticipationReport(principal);
-                case 3 -> generateResponseTrendsReport(surveyId, principal);
-                case 4 -> generateActiveUsersReport(principal);
-                case 5 -> generatePopularSurveysReport(principal);
+                case 3 -> generateResponseTrendsReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
+                case 4 -> generatePopularSurveysReport(principal);
+                case 5 -> generateUserParticipationBySurveyReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
+                case 6 -> generateUserSatisfactionReport(principal);
                 default -> throw new IllegalArgumentException("Invalid report ID");
             };
         } catch (IOException e) {
@@ -139,14 +142,54 @@ public class ExcelReportService {
     }
 
     private ResponseEntity<byte[]> generateResponseTrendsReport(Long surveyId, Principal principal) throws IOException {
-        return null;
-    }
+        String email = principal.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    private ResponseEntity<byte[]> generateActiveUsersReport(Principal principal) throws IOException {
-        return null;
+        List<ResponseTrendReportResponse> responseTrends = answerRepository.findResponseTrendsBySurveyIdAndUserId(surveyId, user.getId());
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Response Trends Report");
+
+        String[] columnNames = {"Question ID", "Question Text", "Answer Text", "Frequency"};
+        createHeaderRow(sheet, columnNames);
+
+        int rowIdx = 1;
+        for (ResponseTrendReportResponse trend : responseTrends) {
+            Row row = sheet.createRow(rowIdx++);
+            row.createCell(0).setCellValue(trend.questionId());
+            row.createCell(1).setCellValue(trend.questionText());
+            row.createCell(2).setCellValue(trend.answerText());
+            row.createCell(3).setCellValue(trend.frequency());
+        }
+
+        for (int i = 0; i < columnNames.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDispositionFormData("attachment", "response_trends_report.xlsx");
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .body(outputStream.toByteArray());
     }
 
     private ResponseEntity<byte[]> generatePopularSurveysReport(Principal principal) throws IOException {
+        return null;
+    }
+
+    private ResponseEntity<byte[]> generateUserParticipationBySurveyReport(Long surveyId, Principal principal) {
+        return null;
+    }
+
+    private ResponseEntity<byte[]> generateUserSatisfactionReport(Principal principal) {
         return null;
     }
 }
