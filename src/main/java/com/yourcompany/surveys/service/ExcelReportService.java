@@ -1,11 +1,13 @@
 package com.yourcompany.surveys.service;
 
 import com.yourcompany.surveys.dto.participation.ParticipationResponse;
+import com.yourcompany.surveys.dto.report.PopularSurveyReportResponse;
 import com.yourcompany.surveys.dto.report.ResponseTrendReportResponse;
 import com.yourcompany.surveys.dto.report.SurveyReportResponse;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.repository.AnswerRepository;
 import com.yourcompany.surveys.repository.ParticipationRepository;
+import com.yourcompany.surveys.repository.SurveyRepository;
 import com.yourcompany.surveys.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
@@ -31,6 +33,7 @@ public class ExcelReportService {
     private final AnswerRepository answerRepository;
     private final ParticipationRepository participationRepository;
     private final UserRepository userRepository;
+    private final SurveyRepository surveyRepository;
 
     private void createHeaderRow(Sheet sheet, String[] columnNames) {
         Row headerRow = sheet.createRow(0);
@@ -182,9 +185,43 @@ public class ExcelReportService {
     }
 
     private ResponseEntity<byte[]> generatePopularSurveysReport(Principal principal) throws IOException {
-        return null;
-    }
+        String email = principal.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
+        List<PopularSurveyReportResponse> popularSurveys = surveyRepository.findPopularSurveysByUserId(user.getId());
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Popular Surveys Report");
+
+        String[] columnNames = {"Survey ID", "Survey Title", "Participation Count"};
+        createHeaderRow(sheet, columnNames);
+
+        int rowIdx = 1;
+        for (PopularSurveyReportResponse survey : popularSurveys) {
+            Row row = sheet.createRow(rowIdx++);
+            row.createCell(0).setCellValue(survey.surveyId());
+            row.createCell(1).setCellValue(survey.surveyTitle());
+            row.createCell(2).setCellValue(survey.participationCount());
+        }
+
+        for (int i = 0; i < columnNames.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDispositionFormData("attachment", "popular_surveys_report.xlsx");
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .body(outputStream.toByteArray());
+    }
     private ResponseEntity<byte[]> generateUserParticipationBySurveyReport(Long surveyId, Principal principal) {
         return null;
     }
