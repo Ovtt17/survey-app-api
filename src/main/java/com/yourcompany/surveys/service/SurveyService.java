@@ -1,12 +1,14 @@
 package com.yourcompany.surveys.service;
 
 import com.yourcompany.surveys.dto.participation.ParticipationResponse;
+import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.entity.*;
 import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;
+import com.yourcompany.surveys.mapper.QuestionOptionMapper;
 import com.yourcompany.surveys.mapper.SurveyMapper;
 import com.yourcompany.surveys.repository.ParticipationRepository;
 import com.yourcompany.surveys.repository.SurveyRepository;
@@ -31,6 +33,7 @@ public class SurveyService {
     private final QuestionMapper questionMapper;
     private final ParticipationRepository participationRepository;
     private final ParticipationMapper participationMapper;
+    private final QuestionOptionMapper questionOptionMapper;
 
     public List<SurveyResponse> findAll() {
         List<Survey> surveys = surveyRepository.findAll();
@@ -84,6 +87,30 @@ public class SurveyService {
                 existingQuestion.setText(questionRequest.text());
                 existingQuestion.setType(QuestionType.fromValue(questionRequest.type()));
 
+                // Update options
+                Map<Long, QuestionOptionRequestDTO> requestOptionsMap = questionRequest.options().stream()
+                        .collect(Collectors.toMap(QuestionOptionRequestDTO::id, o -> o));
+
+                Iterator<QuestionOption> existingOptionsIterator = existingQuestion.getOptions().iterator();
+                while (existingOptionsIterator.hasNext()) {
+                    QuestionOption existingOption = existingOptionsIterator.next();
+
+                    if (requestOptionsMap.containsKey(existingOption.getId())) {
+                        QuestionOptionRequestDTO optionRequest = requestOptionsMap.get(existingOption.getId());
+                        existingOption.setText(optionRequest.text());
+
+                        requestOptionsMap.remove(existingOption.getId());
+                    } else {
+                        existingOptionsIterator.remove();
+                    }
+                }
+
+                requestOptionsMap.values().forEach(optionRequest -> {
+                    QuestionOption newOption = questionOptionMapper.toEntity(optionRequest);
+                    newOption.setQuestion(existingQuestion);
+                    existingQuestion.getOptions().add(newOption);
+                });
+
                 requestQuestionsMap.remove(existingQuestion.getId());
             } else {
                 existingQuestionsIterator.remove();
@@ -98,7 +125,6 @@ public class SurveyService {
 
         return surveyMapper.toResponse(surveyRepository.save(existingSurvey));
     }
-
     public void deleteById(Long id) {
         surveyRepository.deleteById(id);
     }

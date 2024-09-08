@@ -17,11 +17,12 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
             "FROM Answer a " +
             "JOIN a.question q " +
             "JOIN a.user u " +
-            "WHERE a.survey.id = :surveyId " +
-            "AND a.user.id = :userId " +
+            "JOIN a.survey s " +
+            "WHERE s.id = :surveyId " +
+            "AND s.creator.id = :creatorId " +
             "ORDER BY u.id, q.id "
     )
-    List<SurveyReportResponse> findByAnswerBySurveyIdAndUserId(@Param("surveyId") Long surveyId, @Param("userId") Long userId);
+    List<SurveyReportResponse> findByAnswerBySurveyIdAndCreatorId(@Param("surveyId") Long surveyId, @Param("creatorId") Long creatorId);
 
     @Query("SELECT new com.yourcompany.surveys.dto.report.ResponseTrendReportResponse(" +
             "q.id, q.text, a.answerText, COUNT(a.id)) " +
