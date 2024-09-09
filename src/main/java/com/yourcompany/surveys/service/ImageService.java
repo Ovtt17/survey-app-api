@@ -58,9 +58,9 @@ public class ImageService {
             if (responseData != null) {
                 Object data = responseData.get("data");
                 if (data instanceof Map) {
-                    Object imageId = ((Map<?, ?>) data).get("id");
-                    if (imageId instanceof String) {
-                        return (String) imageId;
+                    Object imageLink = ((Map<?, ?>) data).get("link");
+                    if (imageLink instanceof String) {
+                        return (String) imageLink;
                     }
                 }
             }

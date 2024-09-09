@@ -10,18 +10,12 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
 
     public UserResponse toUserResponse(User user) {
-        String profilePictureUrl = "";
-        if (user.getProfilePictureHash() != null) {
-            String IMAGE_BASE_URL = "https://imgur.com/";
-            profilePictureUrl = IMAGE_BASE_URL + user.getProfilePictureHash();
-        }
-
         return new UserResponse(
                 user.getName(),
                 user.getFirstName(),
-                user.getFullName(),
                 user.getLastName(),
-                profilePictureUrl
+                user.getFullName(),
+                user.getProfilePictureUrl()
         );
     }
 

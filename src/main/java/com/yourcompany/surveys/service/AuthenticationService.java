@@ -6,6 +6,7 @@ import com.yourcompany.surveys.dto.user.RegistrationRequest;
 import com.yourcompany.surveys.entity.EmailTemplateName;
 import com.yourcompany.surveys.entity.Token;
 import com.yourcompany.surveys.entity.User;
+import com.yourcompany.surveys.mapper.UserMapper;
 import com.yourcompany.surveys.repository.RoleRepository;
 import com.yourcompany.surveys.repository.TokenRepository;
 import com.yourcompany.surveys.repository.UserRepository;
@@ -37,6 +38,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final ImageService imageService;
+    private final UserMapper userMapper;
 
     @Value ("${application.security.jwt.mailing.front-end.activation-url}")
     private String activationUrl;
@@ -60,12 +62,12 @@ public class AuthenticationService {
 
         try {
             if (request.getProfilePicture() != null) {
-                String imageHash = imageService.uploadImage(
+                String imageUrl = imageService.uploadImage(
                         request.getProfilePicture(),
                         user.getUsername(),
                         "profile_picture"
                 );
-                user.setProfilePictureHash(imageHash);
+                user.setProfilePictureUrl(imageUrl);
             }
             userRepository.save(user);
             sendValidationEmail(user);
@@ -129,7 +131,9 @@ public class AuthenticationService {
         claims.put("fullName", user.getFullName());
         var jwtToken = jwtService.generateToken(claims, user);
         return AuthenticationResponse.builder()
-                .token(jwtToken).build();
+                .token(jwtToken)
+                .user(userMapper.toUserResponse(user))
+                .build();
     }
 
     public void activateAccount(String token) throws MessagingException {

@@ -37,7 +37,7 @@ public class User implements UserDetails, Principal {
     private String lastName;
 
     @Column (unique = true)
-    private String profilePictureHash;
+    private String profilePictureUrl;
 
     @Column(nullable = false)
     private LocalDate dateOfBirth;
