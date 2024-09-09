@@ -18,6 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -35,10 +36,13 @@ public class AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final ImageService imageService;
 
     @Value ("${application.security.jwt.mailing.front-end.activation-url}")
     private String activationUrl;
-    public void register(RegistrationRequest request) throws MessagingException {
+
+    @Transactional
+    public void register(RegistrationRequest request) {
         var userRole = roleRepository.findByName("USER")
                 .orElseThrow(() -> new IllegalStateException("ROL 'USER' no encontrado"));
         var user = User.builder()
@@ -53,8 +57,21 @@ public class AuthenticationService {
                 .enabled(true)
                 .roles(List.of(userRole))
                 .build();
-        userRepository.save(user);
-        sendValidationEmail(user);
+
+        try {
+            if (request.getProfilePicture() != null) {
+                String imageHash = imageService.uploadImage(
+                        request.getProfilePicture(),
+                        user.getUsername(),
+                        "profile_picture"
+                );
+                user.setProfilePictureHash(imageHash);
+            }
+            userRepository.save(user);
+            sendValidationEmail(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Error during registration: " + e.getMessage(), e);
+        }
     }
 
     private void sendValidationEmail(User user) throws MessagingException {

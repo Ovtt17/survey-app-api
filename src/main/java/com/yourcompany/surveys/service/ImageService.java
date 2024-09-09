@@ -1,4 +1,5 @@
 package com.yourcompany.surveys.service;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
@@ -24,45 +25,50 @@ public class ImageService {
     private static final long MAX_IMAGE_SIZE_MB = 5;
     private static final long MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
-    public String uploadImage(MultipartFile image) throws IOException {
-        if (image.getSize() > MAX_IMAGE_SIZE_BYTES) {
-            throw new IOException("El tamaño de la imagen excede el límite de 2 MB.");
-        }
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.set("Authorization", "Bearer " + accessToken);
-
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("image", new ByteArrayResource(image.getBytes()) {
-            @Override
-            public String getFilename() {
-                return image.getOriginalFilename();
+    public String uploadImage (MultipartFile image, String username, String imageType) {
+        try {
+            if (image.getSize() > MAX_IMAGE_SIZE_BYTES) {
+                return "El tamaño de la imagen excede el límite de 5 MB.";
             }
-        });
-        body.add("type", "file");
-        body.add("name", image.getOriginalFilename());
 
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.set("Authorization", "Bearer " + accessToken);
 
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                imgur_url,
-                HttpMethod.POST,
-                request,
-                new ParameterizedTypeReference<>() {}
-        );
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("image", new ByteArrayResource(image.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return image.getOriginalFilename();
+                }
+            });
+            body.add("type", "file");
+            String imageName = username + "_" + imageType;
+            body.add("type", "file");
+            body.add("name", imageName);
+            body.add("title", imageName);
 
-        Map<String, Object> responseData = response.getBody();
-        if (responseData != null) {
-            Object data = responseData.get("data");
-            if (data instanceof Map) {
-                Object link = ((Map<?, ?>) data).get("link");
-                if (link instanceof String) {
-                    return (String) link;
+            HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Map<String, Object>> response = restTemplate
+                    .exchange(imgur_url,HttpMethod.POST,request,new ParameterizedTypeReference<>() {} );
+
+            Map<String, Object> responseData = response.getBody();
+            if (responseData != null) {
+                Object data = responseData.get("data");
+                if (data instanceof Map) {
+                    Object imageId = ((Map<?, ?>) data).get("id");
+                    if (imageId instanceof String) {
+                        return (String) imageId;
+                    }
                 }
             }
+            return "Error al subir la imagen a Imgur o el enlace no es válido.";
+        } catch (IOException e) {
+            return "Error al procesar la imagen: " + e.getMessage();
+        } catch (Exception e) {
+            return "Error inesperado: " + e.getMessage();
         }
-        throw new IOException("Error al subir la imagen a Imgur o el enlace no es válido.");
     }
 }
