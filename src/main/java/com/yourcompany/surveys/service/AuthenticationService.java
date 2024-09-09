@@ -62,9 +62,10 @@ public class AuthenticationService {
 
         try {
             if (request.getProfilePicture() != null) {
+                String username = user.getName();
                 String imageUrl = imageService.uploadImage(
                         request.getProfilePicture(),
-                        user.getUsername(),
+                        username,
                         "profile_picture"
                 );
                 user.setProfilePictureUrl(imageUrl);
