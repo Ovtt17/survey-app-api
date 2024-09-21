@@ -44,7 +44,7 @@ public class AuthenticationService {
     private String activationUrl;
 
     @Transactional
-    public void register(RegistrationRequest request) {
+    public Boolean register(RegistrationRequest request) {
         var userRole = roleRepository.findByName("USER")
                 .orElseThrow(() -> new IllegalStateException("ROL 'USER' no encontrado"));
         var user = User.builder()
@@ -72,6 +72,7 @@ public class AuthenticationService {
             }
             userRepository.save(user);
             sendValidationEmail(user);
+            return true;
         } catch (Exception e) {
             throw new RuntimeException("Error during registration: " + e.getMessage(), e);
         }
@@ -150,6 +151,14 @@ public class AuthenticationService {
         userRepository.save(user);
         savedToken.setValidatedAt(LocalDateTime.now());
         tokenRepository.save(savedToken);
+    }
+
+    public Boolean checkEmail(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    public Boolean checkUsername(String username) {
+        return userRepository.findByUsername(username).isPresent();
     }
 }
 
