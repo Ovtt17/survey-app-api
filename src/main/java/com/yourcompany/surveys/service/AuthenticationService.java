@@ -44,7 +44,7 @@ public class AuthenticationService {
     private String activationUrl;
 
     @Transactional
-    public Boolean register(RegistrationRequest request) {
+    public Boolean register(RegistrationRequest request) throws MessagingException {
         var userRole = roleRepository.findByName("USER")
                 .orElseThrow(() -> new IllegalStateException("ROL 'USER' no encontrado"));
         var user = User.builder()
@@ -60,22 +60,18 @@ public class AuthenticationService {
                 .roles(List.of(userRole))
                 .build();
 
-        try {
-            if (request.getProfilePicture() != null) {
-                String username = user.getName();
-                String imageUrl = imageService.uploadImage(
-                        request.getProfilePicture(),
-                        username,
-                        "profile_picture"
-                );
-                user.setProfilePictureUrl(imageUrl);
-            }
-            userRepository.save(user);
-            sendValidationEmail(user);
-            return true;
-        } catch (Exception e) {
-            throw new RuntimeException("Error during registration: " + e.getMessage(), e);
+        if (request.getProfilePicture() != null) {
+            String username = user.getName();
+            String imageUrl = imageService.uploadImage(
+                    request.getProfilePicture(),
+                    username,
+                    "profile_picture"
+            );
+            user.setProfilePictureUrl(imageUrl);
         }
+        userRepository.save(user);
+        sendValidationEmail(user);
+        return true;
     }
 
     private void sendValidationEmail(User user) throws MessagingException {
