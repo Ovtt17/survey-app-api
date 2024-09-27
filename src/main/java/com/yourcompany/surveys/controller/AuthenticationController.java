@@ -22,10 +22,10 @@ public class AuthenticationController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public ResponseEntity<?> register (
-            @RequestBody @Valid RegistrationRequest request
+            @ModelAttribute @Valid RegistrationRequest request
     ) throws MessagingException {
-        authService.register(request);
-        return ResponseEntity.accepted().build();
+        Boolean isRegistered = authService.register(request);
+        return ResponseEntity.accepted().body(isRegistered);
     }
 
     @PostMapping("/authenticate")
@@ -36,9 +36,24 @@ public class AuthenticationController {
     }
 
     @GetMapping ("/activate-account")
-    public void confirm (
+    public ResponseEntity<Void> confirm (
             @RequestParam String token
     ) throws MessagingException {
         authService.activateAccount(token);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<Boolean> checkEmail (
+            @PathVariable @Valid String email
+    ) {
+        return ResponseEntity.ok(authService.checkEmail(email));
+    }
+
+    @GetMapping("/username/{username}")
+    public ResponseEntity<Boolean> checkUsername (
+            @PathVariable @Valid String username
+    ) {
+        return ResponseEntity.ok(authService.checkUsername(username));
     }
 }

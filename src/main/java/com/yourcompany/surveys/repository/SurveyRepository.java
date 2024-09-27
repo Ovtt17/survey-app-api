@@ -14,6 +14,7 @@ import java.util.List;
 
 @Repository
 public interface SurveyRepository extends JpaRepository<Survey, Long> {
+    Survey findByIdAndCreator(Long id, User creator);
     List<Survey> findByCreator(User creator);
 
     @Query("SELECT new com.yourcompany.surveys.dto.report.PopularSurveyReportResponse(" +

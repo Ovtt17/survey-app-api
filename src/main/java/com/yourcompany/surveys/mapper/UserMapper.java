@@ -8,12 +8,14 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserMapper {
+
     public UserResponse toUserResponse(User user) {
         return new UserResponse(
                 user.getName(),
                 user.getFirstName(),
+                user.getLastName(),
                 user.getFullName(),
-                user.getLastName()
+                user.getProfilePictureUrl()
         );
     }
 

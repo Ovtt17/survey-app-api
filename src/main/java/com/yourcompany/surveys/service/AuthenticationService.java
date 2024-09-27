@@ -6,6 +6,7 @@ import com.yourcompany.surveys.dto.user.RegistrationRequest;
 import com.yourcompany.surveys.entity.EmailTemplateName;
 import com.yourcompany.surveys.entity.Token;
 import com.yourcompany.surveys.entity.User;
+import com.yourcompany.surveys.mapper.UserMapper;
 import com.yourcompany.surveys.repository.RoleRepository;
 import com.yourcompany.surveys.repository.TokenRepository;
 import com.yourcompany.surveys.repository.UserRepository;
@@ -18,6 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -35,10 +37,14 @@ public class AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final ImageService imageService;
+    private final UserMapper userMapper;
 
     @Value ("${application.security.jwt.mailing.front-end.activation-url}")
     private String activationUrl;
-    public void register(RegistrationRequest request) throws MessagingException {
+
+    @Transactional
+    public Boolean register(RegistrationRequest request) throws MessagingException {
         var userRole = roleRepository.findByName("USER")
                 .orElseThrow(() -> new IllegalStateException("ROL 'USER' no encontrado"));
         var user = User.builder()
@@ -53,8 +59,19 @@ public class AuthenticationService {
                 .enabled(true)
                 .roles(List.of(userRole))
                 .build();
+
+        if (request.getProfilePicture() != null) {
+            String username = user.getName();
+            String imageUrl = imageService.uploadImage(
+                    request.getProfilePicture(),
+                    username,
+                    "profile_picture"
+            );
+            user.setProfilePictureUrl(imageUrl);
+        }
         userRepository.save(user);
         sendValidationEmail(user);
+        return true;
     }
 
     private void sendValidationEmail(User user) throws MessagingException {
@@ -112,7 +129,9 @@ public class AuthenticationService {
         claims.put("fullName", user.getFullName());
         var jwtToken = jwtService.generateToken(claims, user);
         return AuthenticationResponse.builder()
-                .token(jwtToken).build();
+                .token(jwtToken)
+                .user(userMapper.toUserResponse(user))
+                .build();
     }
 
     public void activateAccount(String token) throws MessagingException {
@@ -128,6 +147,14 @@ public class AuthenticationService {
         userRepository.save(user);
         savedToken.setValidatedAt(LocalDateTime.now());
         tokenRepository.save(savedToken);
+    }
+
+    public Boolean checkEmail(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    public Boolean checkUsername(String username) {
+        return userRepository.findByUsername(username).isPresent();
     }
 }
 

@@ -60,7 +60,7 @@ public class ExcelReportService {
             String email = principal.getName();
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            List<SurveyReportResponse> responses = answerRepository.findByAnswerBySurveyIdAndUserId(surveyId, user.getId());
+            List<SurveyReportResponse> responses = answerRepository.findByAnswerBySurveyIdAndCreatorId(surveyId, user.getId());
 
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Informe de Respuestas de Encuesta");

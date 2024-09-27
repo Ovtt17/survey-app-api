@@ -36,6 +36,9 @@ public class User implements UserDetails, Principal {
     @Column(nullable = false)
     private String lastName;
 
+    @Column (unique = true)
+    private String profilePictureUrl;
+
     @Column(nullable = false)
     private LocalDate dateOfBirth;
 

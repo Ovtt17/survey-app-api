@@ -1,5 +1,6 @@
 package com.yourcompany.surveys.service;
 
+import com.yourcompany.surveys.dto.rating.RatingGroupResponse;
 import com.yourcompany.surveys.dto.rating.RatingRequestDTO;
 import com.yourcompany.surveys.entity.Rating;
 import com.yourcompany.surveys.entity.Survey;
@@ -14,6 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -54,5 +59,20 @@ public class RatingService {
         }
         surveyRepository.save(survey);
         return existingRating;
+    }
+
+    public List<RatingGroupResponse> getRatingsGroupedByRate(Long surveyId) {
+        List<RatingGroupResponse> results = ratingRepository.getRatingsGroupedByRate(surveyId);
+
+        Map<Long, Long> ratingsMap = new HashMap<>();
+        for (RatingGroupResponse response : results) {
+            ratingsMap.put(response.rating(), response.count());
+        }
+
+        List<RatingGroupResponse> completeResults = new ArrayList<>();
+        for (long i = 5; i >= 1; i--) {
+            completeResults.add(new RatingGroupResponse(i, ratingsMap.getOrDefault(i, 0L)));
+        }
+        return completeResults;
     }
 }

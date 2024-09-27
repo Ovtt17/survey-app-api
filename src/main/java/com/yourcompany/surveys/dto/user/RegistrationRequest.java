@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -16,6 +17,8 @@ public class RegistrationRequest {
 
     @NotBlank(message = "El apellido es obligatorio")
     private String lastName;
+
+    private MultipartFile profilePicture;
 
     @NotNull (message = "La fecha de nacimiento es obligatoria")
     private LocalDate dateOfBirth;
