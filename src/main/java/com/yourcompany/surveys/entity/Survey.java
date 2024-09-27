@@ -29,9 +29,11 @@ public class Survey {
     private String description;
 
     @Column(nullable = false, insertable = false, columnDefinition = "double default 0.0")
+    @Builder.Default
     private Double averageRating = 0.0;
 
     @Column(nullable = false, insertable = false, columnDefinition = "bigint default 0")
+    @Builder.Default
     private Long ratingCount = 0L;
 
     @ManyToOne
