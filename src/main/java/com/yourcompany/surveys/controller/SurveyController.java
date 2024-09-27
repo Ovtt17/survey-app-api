@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/surveys")
@@ -27,8 +26,14 @@ public class SurveyController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<SurveyResponse>> getSurveyById(@PathVariable Long id) {
-        Optional<SurveyResponse> survey = surveyService.findById(id);
+    public ResponseEntity<SurveyResponse> getSurveyById(@PathVariable Long id) {
+        SurveyResponse survey = surveyService.findById(id);
+        return new ResponseEntity<>(survey, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/owner")
+    public ResponseEntity<SurveyResponse> getSurveyByIdForOwner(@PathVariable Long id, Principal principal) {
+        SurveyResponse survey = surveyService.findByIdForOwner(id, principal);
         return new ResponseEntity<>(survey, HttpStatus.OK);
     }
 

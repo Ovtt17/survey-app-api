@@ -14,6 +14,7 @@ public enum BusinessErrorCodes {
     ACCOUNT_LOCKED (302, FORBIDDEN, "La cuenta de usuario se encuentra bloqueada"),
     ACCOUNT_DISABLED (303, FORBIDDEN, "La cuenta de usuario se encuentra deshabilitada"),
     BAD_CREDENTIALS (304, FORBIDDEN, "La combinación de usuario y contraseña es incorrecta"),
+    SURVEY_NOT_FOUND (305, NOT_FOUND, "Encuesta no encontrada o no eres el creador"),
     ;
     private final int code;
     private final String description;

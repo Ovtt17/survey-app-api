@@ -6,6 +6,7 @@ import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.entity.*;
+import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
 import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;
 import com.yourcompany.surveys.mapper.QuestionOptionMapper;
@@ -18,10 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +33,13 @@ public class SurveyService {
     private final ParticipationMapper participationMapper;
     private final QuestionOptionMapper questionOptionMapper;
 
+    private User getUserFromPrincipal(Principal principal) {
+        String email = principal.getName();
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new IllegalArgumentException("User not found")
+        );
+    }
+
     public List<SurveyResponse> findAll() {
         List<Survey> surveys = surveyRepository.findAll();
         return surveys.stream()
@@ -42,16 +47,25 @@ public class SurveyService {
                 .toList();
     }
 
-    public Optional<SurveyResponse> findById(Long id) {
+    public SurveyResponse findById(Long id) {
         Optional<Survey> survey = surveyRepository.findById(id);
-        return survey.map(surveyMapper::toResponse);
+        if (survey.isEmpty()) {
+            throw new SurveyNotFoundException("Encuesta no encontrada.");
+        }
+        return surveyMapper.toResponse(survey.get());
+    }
+
+    public SurveyResponse findByIdForOwner(Long id, Principal principal) {
+        User user = getUserFromPrincipal(principal);
+        Survey survey = surveyRepository.findByIdAndCreator(id, user);
+        if (survey == null) {
+            throw new SurveyNotFoundException("Encuesta no encontrada o no eres el creador.");
+        }
+        return surveyMapper.toResponse(survey);
     }
 
     public List<SurveyResponse> getByUser(Principal principal) {
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new IllegalArgumentException("User not found")
-        );
+        User user = getUserFromPrincipal(principal);
         List<Survey> surveys = surveyRepository.findByCreator(user);
         return surveys.stream()
                 .map(surveyMapper::toResponse)
@@ -60,10 +74,7 @@ public class SurveyService {
 
     @Transactional
     public SurveyResponse save(SurveyRequestDTO surveyRequest, Principal principal) {
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new IllegalArgumentException("User not found")
-        );
+        User user = getUserFromPrincipal(principal);
         Survey survey = surveyMapper.toEntity(surveyRequest, user);
         survey = surveyRepository.save(survey);
         return surveyMapper.toResponse(survey);
@@ -71,10 +82,18 @@ public class SurveyService {
 
     public SurveyResponse update(Long id, SurveyRequestDTO surveyRequest) {
         Survey existingSurvey = surveyRepository.findById(id).orElseThrow();
+        updateSurveyDetails(existingSurvey, surveyRequest);
+        updateExistingQuestions(existingSurvey, surveyRequest);
+        addNewQuestions(existingSurvey, surveyRequest);
+        return surveyMapper.toResponse(surveyRepository.save(existingSurvey));
+    }
 
+    private void updateSurveyDetails(Survey existingSurvey, SurveyRequestDTO surveyRequest) {
         existingSurvey.setTitle(surveyRequest.title());
         existingSurvey.setDescription(surveyRequest.description());
+    }
 
+    private void updateExistingQuestions(Survey existingSurvey, SurveyRequestDTO surveyRequest) {
         Map<Long, QuestionRequestDTO> requestQuestionsMap = surveyRequest.questions().stream()
                 .collect(Collectors.toMap(QuestionRequestDTO::id, q -> q));
 
@@ -86,45 +105,49 @@ public class SurveyService {
                 QuestionRequestDTO questionRequest = requestQuestionsMap.get(existingQuestion.getId());
                 existingQuestion.setText(questionRequest.text());
                 existingQuestion.setType(QuestionType.fromValue(questionRequest.type()));
-
-                // Update options
-                Map<Long, QuestionOptionRequestDTO> requestOptionsMap = questionRequest.options().stream()
-                        .collect(Collectors.toMap(QuestionOptionRequestDTO::id, o -> o));
-
-                Iterator<QuestionOption> existingOptionsIterator = existingQuestion.getOptions().iterator();
-                while (existingOptionsIterator.hasNext()) {
-                    QuestionOption existingOption = existingOptionsIterator.next();
-
-                    if (requestOptionsMap.containsKey(existingOption.getId())) {
-                        QuestionOptionRequestDTO optionRequest = requestOptionsMap.get(existingOption.getId());
-                        existingOption.setText(optionRequest.text());
-
-                        requestOptionsMap.remove(existingOption.getId());
-                    } else {
-                        existingOptionsIterator.remove();
-                    }
-                }
-
-                requestOptionsMap.values().forEach(optionRequest -> {
-                    QuestionOption newOption = questionOptionMapper.toEntity(optionRequest);
-                    newOption.setQuestion(existingQuestion);
-                    existingQuestion.getOptions().add(newOption);
-                });
-
+                updateQuestionOptions(existingQuestion, questionRequest);
                 requestQuestionsMap.remove(existingQuestion.getId());
             } else {
                 existingQuestionsIterator.remove();
             }
         }
+    }
+
+    private void updateQuestionOptions(Question existingQuestion, QuestionRequestDTO questionRequest) {
+        Map<Long, QuestionOptionRequestDTO> requestOptionsMap = questionRequest.options().stream()
+                .collect(Collectors.toMap(QuestionOptionRequestDTO::id, o -> o));
+
+        Iterator<QuestionOption> existingOptionsIterator = existingQuestion.getOptions().iterator();
+        while (existingOptionsIterator.hasNext()) {
+            QuestionOption existingOption = existingOptionsIterator.next();
+
+            if (requestOptionsMap.containsKey(existingOption.getId())) {
+                QuestionOptionRequestDTO optionRequest = requestOptionsMap.get(existingOption.getId());
+                existingOption.setText(optionRequest.text());
+                requestOptionsMap.remove(existingOption.getId());
+            } else {
+                existingOptionsIterator.remove();
+            }
+        }
+
+        requestOptionsMap.values().forEach(optionRequest -> {
+            QuestionOption newOption = questionOptionMapper.toEntity(optionRequest);
+            newOption.setQuestion(existingQuestion);
+            existingQuestion.getOptions().add(newOption);
+        });
+    }
+
+    private void addNewQuestions(Survey existingSurvey, SurveyRequestDTO surveyRequest) {
+        Map<Long, QuestionRequestDTO> requestQuestionsMap = surveyRequest.questions().stream()
+                .collect(Collectors.toMap(QuestionRequestDTO::id, q -> q));
 
         requestQuestionsMap.values().forEach(questionRequest -> {
             Question newQuestion = questionMapper.toEntity(questionRequest);
             newQuestion.setSurvey(existingSurvey);
             existingSurvey.getQuestions().add(newQuestion);
         });
-
-        return surveyMapper.toResponse(surveyRepository.save(existingSurvey));
     }
+
     public void deleteById(Long id) {
         surveyRepository.deleteById(id);
     }
