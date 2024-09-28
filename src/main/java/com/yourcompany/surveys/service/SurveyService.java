@@ -7,6 +7,7 @@ import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.entity.*;
 import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
+import com.yourcompany.surveys.handler.exception.UserNotFoundException;
 import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;
 import com.yourcompany.surveys.mapper.QuestionOptionMapper;
@@ -36,7 +37,7 @@ public class SurveyService {
     private User getUserFromPrincipal(Principal principal) {
         String email = principal.getName();
         return userRepository.findByEmail(email).orElseThrow(
-                () -> new IllegalArgumentException("User not found")
+                () -> new UserNotFoundException("Usuario no  encontrado con email: " + email)
         );
     }
 
