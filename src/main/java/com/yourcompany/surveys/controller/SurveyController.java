@@ -42,6 +42,11 @@ public class SurveyController {
         return ResponseEntity.ok(surveyService.getByUser(principal));
     }
 
+    @GetMapping("/user/{username}")
+    public ResponseEntity<List<SurveyResponse>> getSurveysByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(surveyService.getByUsername(username));
+    }
+
     @PostMapping
     public ResponseEntity<SurveyResponse> createSurvey(@RequestBody SurveyRequestDTO surveyRequest, Principal principal) {
         SurveyResponse createdSurvey = surveyService.save(surveyRequest, principal);

@@ -72,6 +72,13 @@ public class SurveyService {
                 .toList();
     }
 
+    public List<SurveyResponse> getByUsername(String username) {
+        List<Survey> surveys = surveyRepository.findByCreatorUsername(username);
+        return surveys.stream()
+                .map(surveyMapper::toResponse)
+                .toList();
+    }
+
     @Transactional
     public SurveyResponse save(SurveyRequestDTO surveyRequest, Principal principal) {
         User user = getUserFromPrincipal(principal);
