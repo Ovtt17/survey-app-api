@@ -1,6 +1,7 @@
 package com.yourcompany.surveys.handler;
 
 import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
+import com.yourcompany.surveys.handler.exception.UserNotFoundException;
 import jakarta.mail.MessagingException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -108,6 +109,19 @@ public class GlobalExceptionHandler {
                                 .businessErrorCode(SURVEY_NOT_FOUND.getCode())
                                 .businessErrorDescription(SURVEY_NOT_FOUND.getDescription())
                                 .error(SURVEY_NOT_FOUND.getDescription())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleUserNotFoundException (UserNotFoundException e) {
+        return ResponseEntity
+                .status(USER_NOT_FOUND.getHttpStatus())
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(USER_NOT_FOUND.getCode())
+                                .businessErrorDescription(USER_NOT_FOUND.getDescription())
+                                .error(e.getMessage())
                                 .build()
                 );
     }
