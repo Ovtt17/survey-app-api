@@ -5,7 +5,7 @@ import com.yourcompany.surveys.dto.user.UserResponse;
 
 import java.util.List;
 
-public record SurveyResponse (
+public record SurveySubmissionResponse(
         Long id,
         String title,
         String description,

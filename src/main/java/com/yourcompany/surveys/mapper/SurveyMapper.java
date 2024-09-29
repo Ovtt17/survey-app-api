@@ -1,7 +1,7 @@
 package com.yourcompany.surveys.mapper;
 
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
-import com.yourcompany.surveys.dto.survey.SurveyResponse;
+import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
@@ -17,8 +17,8 @@ public class SurveyMapper {
     private final UserMapper userMapper;
     private final QuestionMapper questionMapper;
 
-    public SurveyResponse toResponse(Survey survey) {
-        return new SurveyResponse(
+    public SurveySubmissionResponse toResponse(Survey survey) {
+        return new SurveySubmissionResponse(
                 survey.getId(),
                 survey.getTitle(),
                 survey.getDescription(),

@@ -4,7 +4,7 @@ import com.yourcompany.surveys.dto.participation.ParticipationResponse;
 import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
-import com.yourcompany.surveys.dto.survey.SurveyResponse;
+import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.entity.*;
 import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
 import com.yourcompany.surveys.handler.exception.UserNotFoundException;
@@ -41,14 +41,14 @@ public class SurveyService {
         );
     }
 
-    public List<SurveyResponse> findAll() {
+    public List<SurveySubmissionResponse> findAll() {
         List<Survey> surveys = surveyRepository.findAll();
         return surveys.stream()
                 .map(surveyMapper::toResponse)
                 .toList();
     }
 
-    public SurveyResponse findById(Long id) {
+    public SurveySubmissionResponse findById(Long id) {
         Optional<Survey> survey = surveyRepository.findById(id);
         if (survey.isEmpty()) {
             throw new SurveyNotFoundException("Encuesta no encontrada.");
@@ -56,7 +56,7 @@ public class SurveyService {
         return surveyMapper.toResponse(survey.get());
     }
 
-    public SurveyResponse findByIdForOwner(Long id, Principal principal) {
+    public SurveySubmissionResponse findByIdForOwner(Long id, Principal principal) {
         User user = getUserFromPrincipal(principal);
         Survey survey = surveyRepository.findByIdAndCreator(id, user);
         if (survey == null) {
@@ -65,7 +65,7 @@ public class SurveyService {
         return surveyMapper.toResponse(survey);
     }
 
-    public List<SurveyResponse> getByUser(Principal principal) {
+    public List<SurveySubmissionResponse> getByUser(Principal principal) {
         User user = getUserFromPrincipal(principal);
         List<Survey> surveys = surveyRepository.findByCreator(user);
         return surveys.stream()
@@ -73,7 +73,7 @@ public class SurveyService {
                 .toList();
     }
 
-    public List<SurveyResponse> getByUsername(String username) {
+    public List<SurveySubmissionResponse> getByUsername(String username) {
         List<Survey> surveys = surveyRepository.findByCreatorUsername(username);
         return surveys.stream()
                 .map(surveyMapper::toResponse)
@@ -81,14 +81,14 @@ public class SurveyService {
     }
 
     @Transactional
-    public SurveyResponse save(SurveyRequestDTO surveyRequest, Principal principal) {
+    public SurveySubmissionResponse save(SurveyRequestDTO surveyRequest, Principal principal) {
         User user = getUserFromPrincipal(principal);
         Survey survey = surveyMapper.toEntity(surveyRequest, user);
         survey = surveyRepository.save(survey);
         return surveyMapper.toResponse(survey);
     }
 
-    public SurveyResponse update(Long id, SurveyRequestDTO surveyRequest) {
+    public SurveySubmissionResponse update(Long id, SurveyRequestDTO surveyRequest) {
         Survey existingSurvey = surveyRepository.findById(id).orElseThrow();
         updateSurveyDetails(existingSurvey, surveyRequest);
         updateExistingQuestions(existingSurvey, surveyRequest);
