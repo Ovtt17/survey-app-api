@@ -1,6 +1,7 @@
 package com.yourcompany.surveys.mapper;
 
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
+import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.Survey;
@@ -26,6 +27,18 @@ public class SurveyMapper {
                 survey.getQuestions().stream()
                         .map(questionMapper::toResponse)
                         .collect(Collectors.toList()),
+                survey.getAverageRating(),
+                survey.getRatingCount()
+        );
+    }
+
+    public SurveyResponse toResponse (Survey survey) {
+        return new SurveyResponse(
+                survey.getId(),
+                survey.getTitle(),
+                survey.getDescription(),
+                survey.getCreator().getFullName(),
+                survey.getCreator().getName(),
                 survey.getAverageRating(),
                 survey.getRatingCount()
         );
