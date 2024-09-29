@@ -4,6 +4,7 @@ import com.yourcompany.surveys.dto.participation.ParticipationResponse;
 import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
+import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.entity.*;
 import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
@@ -41,14 +42,22 @@ public class SurveyService {
         );
     }
 
-    public List<SurveySubmissionResponse> findAll() {
+    public List<SurveyResponse> findAll() {
         List<Survey> surveys = surveyRepository.findAll();
         return surveys.stream()
-                .map(surveyMapper::toSubmissionResponse)
+                .map(surveyMapper::toResponse)
                 .toList();
     }
 
-    public SurveySubmissionResponse findById(Long id) {
+    public SurveyResponse findById(Long id) {
+        Optional<Survey> survey = surveyRepository.findById(id);
+        if (survey.isEmpty()) {
+            throw new SurveyNotFoundException("Encuesta no encontrada.");
+        }
+        return surveyMapper.toResponse(survey.get());
+    }
+
+    public SurveySubmissionResponse findByIdForSubmission(Long id) {
         Optional<Survey> survey = surveyRepository.findById(id);
         if (survey.isEmpty()) {
             throw new SurveyNotFoundException("Encuesta no encontrada.");
@@ -60,40 +69,40 @@ public class SurveyService {
         User user = getUserFromPrincipal(principal);
         Survey survey = surveyRepository.findByIdAndCreator(id, user);
         if (survey == null) {
-            throw new SurveyNotFoundException("Encuesta no encontrada o no eres el creador.");
+            throw new SurveyNotFoundException("Encuesta no encontrada.");
         }
         return surveyMapper.toSubmissionResponse(survey);
     }
 
-    public List<SurveySubmissionResponse> getByUser(Principal principal) {
+    public List<SurveyResponse> getByUser(Principal principal) {
         User user = getUserFromPrincipal(principal);
         List<Survey> surveys = surveyRepository.findByCreator(user);
         return surveys.stream()
-                .map(surveyMapper::toSubmissionResponse)
+                .map(surveyMapper::toResponse)
                 .toList();
     }
 
-    public List<SurveySubmissionResponse> getByUsername(String username) {
+    public List<SurveyResponse> getByUsername(String username) {
         List<Survey> surveys = surveyRepository.findByCreatorUsername(username);
         return surveys.stream()
-                .map(surveyMapper::toSubmissionResponse)
+                .map(surveyMapper::toResponse)
                 .toList();
     }
 
     @Transactional
-    public SurveySubmissionResponse save(SurveyRequestDTO surveyRequest, Principal principal) {
+    public void save(SurveyRequestDTO surveyRequest, Principal principal) {
         User user = getUserFromPrincipal(principal);
         Survey survey = surveyMapper.toEntity(surveyRequest, user);
         survey = surveyRepository.save(survey);
-        return surveyMapper.toSubmissionResponse(survey);
+        surveyMapper.toSubmissionResponse(survey);
     }
 
-    public SurveySubmissionResponse update(Long id, SurveyRequestDTO surveyRequest) {
+    public void update(Long id, SurveyRequestDTO surveyRequest) {
         Survey existingSurvey = surveyRepository.findById(id).orElseThrow();
         updateSurveyDetails(existingSurvey, surveyRequest);
         updateExistingQuestions(existingSurvey, surveyRequest);
         addNewQuestions(existingSurvey, surveyRequest);
-        return surveyMapper.toSubmissionResponse(surveyRepository.save(existingSurvey));
+        surveyMapper.toSubmissionResponse(surveyRepository.save(existingSurvey));
     }
 
     private void updateSurveyDetails(Survey existingSurvey, SurveyRequestDTO surveyRequest) {

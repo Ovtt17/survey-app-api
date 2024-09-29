@@ -39,6 +39,7 @@ public class SurveyMapper {
                 survey.getDescription(),
                 survey.getCreator().getFullName(),
                 survey.getCreator().getName(),
+                survey.getCreator().getProfilePictureUrl(),
                 survey.getAverageRating(),
                 survey.getRatingCount()
         );
