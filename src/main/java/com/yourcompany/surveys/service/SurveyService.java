@@ -44,7 +44,7 @@ public class SurveyService {
     public List<SurveySubmissionResponse> findAll() {
         List<Survey> surveys = surveyRepository.findAll();
         return surveys.stream()
-                .map(surveyMapper::toResponse)
+                .map(surveyMapper::toSubmissionResponse)
                 .toList();
     }
 
@@ -53,7 +53,7 @@ public class SurveyService {
         if (survey.isEmpty()) {
             throw new SurveyNotFoundException("Encuesta no encontrada.");
         }
-        return surveyMapper.toResponse(survey.get());
+        return surveyMapper.toSubmissionResponse(survey.get());
     }
 
     public SurveySubmissionResponse findByIdForOwner(Long id, Principal principal) {
@@ -62,21 +62,21 @@ public class SurveyService {
         if (survey == null) {
             throw new SurveyNotFoundException("Encuesta no encontrada o no eres el creador.");
         }
-        return surveyMapper.toResponse(survey);
+        return surveyMapper.toSubmissionResponse(survey);
     }
 
     public List<SurveySubmissionResponse> getByUser(Principal principal) {
         User user = getUserFromPrincipal(principal);
         List<Survey> surveys = surveyRepository.findByCreator(user);
         return surveys.stream()
-                .map(surveyMapper::toResponse)
+                .map(surveyMapper::toSubmissionResponse)
                 .toList();
     }
 
     public List<SurveySubmissionResponse> getByUsername(String username) {
         List<Survey> surveys = surveyRepository.findByCreatorUsername(username);
         return surveys.stream()
-                .map(surveyMapper::toResponse)
+                .map(surveyMapper::toSubmissionResponse)
                 .toList();
     }
 
@@ -85,7 +85,7 @@ public class SurveyService {
         User user = getUserFromPrincipal(principal);
         Survey survey = surveyMapper.toEntity(surveyRequest, user);
         survey = surveyRepository.save(survey);
-        return surveyMapper.toResponse(survey);
+        return surveyMapper.toSubmissionResponse(survey);
     }
 
     public SurveySubmissionResponse update(Long id, SurveyRequestDTO surveyRequest) {
@@ -93,7 +93,7 @@ public class SurveyService {
         updateSurveyDetails(existingSurvey, surveyRequest);
         updateExistingQuestions(existingSurvey, surveyRequest);
         addNewQuestions(existingSurvey, surveyRequest);
-        return surveyMapper.toResponse(surveyRepository.save(existingSurvey));
+        return surveyMapper.toSubmissionResponse(surveyRepository.save(existingSurvey));
     }
 
     private void updateSurveyDetails(Survey existingSurvey, SurveyRequestDTO surveyRequest) {

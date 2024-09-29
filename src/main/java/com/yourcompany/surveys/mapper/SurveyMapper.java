@@ -17,7 +17,7 @@ public class SurveyMapper {
     private final UserMapper userMapper;
     private final QuestionMapper questionMapper;
 
-    public SurveySubmissionResponse toResponse(Survey survey) {
+    public SurveySubmissionResponse toSubmissionResponse(Survey survey) {
         return new SurveySubmissionResponse(
                 survey.getId(),
                 survey.getTitle(),
