@@ -8,14 +8,12 @@ import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.service.SurveyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/surveys")
@@ -25,8 +23,11 @@ public class SurveyController {
     private final SurveyService surveyService;
 
     @GetMapping
-    public ResponseEntity<List<SurveyResponse>> getAllSurveys() {
-        return ResponseEntity.ok(surveyService.findAll());
+    public ResponseEntity<SurveyPagedResponse> getAllSurveys(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return ResponseEntity.ok(surveyService.getAllSurveys(page, size));
     }
 
     @GetMapping("/{id}")
@@ -48,8 +49,8 @@ public class SurveyController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<SurveyResponse>> getSurveysByUser(Principal principal) {
-        return ResponseEntity.ok(surveyService.getByUser(principal));
+    public ResponseEntity<List<SurveyResponse>> getSurveysByUserForReport(Principal principal) {
+        return ResponseEntity.ok(surveyService.getByUserForReport(principal));
     }
 
     @GetMapping("/user/paged")

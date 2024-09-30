@@ -46,11 +46,10 @@ public class SurveyService {
         );
     }
 
-    public List<SurveyResponse> findAll() {
-        List<Survey> surveys = surveyRepository.findAll();
-        return surveys.stream()
-                .map(surveyMapper::toResponse)
-                .toList();
+    public SurveyPagedResponse getAllSurveys(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Survey> surveys = surveyRepository.findAll(pageable);
+        return surveyMapper.toPagedResponse(surveys);
     }
 
     public SurveyResponse findById(Long id) {
@@ -78,7 +77,7 @@ public class SurveyService {
         return surveyMapper.toSubmissionResponse(survey);
     }
 
-    public List<SurveyResponse> getByUser(Principal principal) {
+    public List<SurveyResponse> getByUserForReport(Principal principal) {
         User user = getUserFromPrincipal(principal);
         List<Survey> surveys = surveyRepository.findByCreator(user);
         return surveys.stream()

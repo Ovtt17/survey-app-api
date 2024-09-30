@@ -20,6 +20,7 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
     List<Survey> findByCreator(User creator);
     Page<Survey> findByCreator(User creator, Pageable pageable);
     Page<Survey> findByCreatorUsername(String username, Pageable pageable);
+    Page<Survey> findAll(Pageable pageable);
 
     @Query("SELECT new com.yourcompany.surveys.dto.report.PopularSurveyReportResponse(" +
             "s.id, s.title, COUNT(p.id)) " +
