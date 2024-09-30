@@ -3,6 +3,7 @@ package com.yourcompany.surveys.service;
 import com.yourcompany.surveys.dto.participation.ParticipationResponse;
 import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
+import com.yourcompany.surveys.dto.survey.SurveyPagedResponse;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
@@ -18,6 +19,9 @@ import com.yourcompany.surveys.repository.SurveyRepository;
 import com.yourcompany.surveys.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
@@ -82,11 +86,25 @@ public class SurveyService {
                 .toList();
     }
 
-    public List<SurveyResponse> getByUsername(String username) {
-        List<Survey> surveys = surveyRepository.findByCreatorUsername(username);
-        return surveys.stream()
-                .map(surveyMapper::toResponse)
-                .toList();
+    public SurveyPagedResponse getByUserWithPaging(
+            Principal principal,
+            int page,
+            int size
+    ) {
+        User user = getUserFromPrincipal(principal);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Survey> surveys = surveyRepository.findByCreator(user, pageable);
+        return surveyMapper.toPagedResponse(surveys);
+    }
+
+    public SurveyPagedResponse getByUsernameWithPaging(
+            String username,
+            int page,
+            int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Survey> surveys = surveyRepository.findByCreatorUsername(username, pageable);
+        return surveyMapper.toPagedResponse(surveys);
     }
 
     @Transactional

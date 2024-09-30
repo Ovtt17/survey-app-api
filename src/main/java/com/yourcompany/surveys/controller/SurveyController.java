@@ -1,18 +1,21 @@
 package com.yourcompany.surveys.controller;
 
 import com.yourcompany.surveys.dto.participation.ParticipationResponse;
+import com.yourcompany.surveys.dto.survey.SurveyPagedResponse;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.service.SurveyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/surveys")
@@ -49,9 +52,22 @@ public class SurveyController {
         return ResponseEntity.ok(surveyService.getByUser(principal));
     }
 
-    @GetMapping("/user/{username}")
-    public ResponseEntity<List<SurveyResponse>> getSurveysByUsername(@PathVariable String username) {
-        return ResponseEntity.ok(surveyService.getByUsername(username));
+    @GetMapping("/user/paged")
+    public ResponseEntity<SurveyPagedResponse> getSurveysByUserWithPaging(
+            Principal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size
+    ) {
+        return ResponseEntity.ok(surveyService.getByUserWithPaging(principal, page, size));
+    }
+
+    @GetMapping("/user/{username}/paged")
+    public ResponseEntity<SurveyPagedResponse> getSurveysByUsernameWithPaging(
+            @PathVariable String username,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return ResponseEntity.ok(surveyService.getByUsernameWithPaging(username, page, size));
     }
 
     @PostMapping
