@@ -1,8 +1,10 @@
 package com.yourcompany.surveys.controller;
 
 import com.yourcompany.surveys.dto.participation.ParticipationResponse;
+import com.yourcompany.surveys.dto.survey.SurveyPagedResponse;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
+import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.service.SurveyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +23,11 @@ public class SurveyController {
     private final SurveyService surveyService;
 
     @GetMapping
-    public ResponseEntity<List<SurveyResponse>> getAllSurveys() {
-        return ResponseEntity.ok(surveyService.findAll());
+    public ResponseEntity<SurveyPagedResponse> getAllSurveys(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return ResponseEntity.ok(surveyService.getAllSurveys(page, size));
     }
 
     @GetMapping("/{id}")
@@ -31,33 +36,57 @@ public class SurveyController {
         return new ResponseEntity<>(survey, HttpStatus.OK);
     }
 
+    @GetMapping("/{id}/submission")
+    public ResponseEntity<SurveySubmissionResponse> getSurveyByIdForSubmission(@PathVariable Long id) {
+        SurveySubmissionResponse survey = surveyService.findByIdForSubmission(id);
+        return new ResponseEntity<>(survey, HttpStatus.OK);
+    }
+
     @GetMapping("/{id}/owner")
-    public ResponseEntity<SurveyResponse> getSurveyByIdForOwner(@PathVariable Long id, Principal principal) {
-        SurveyResponse survey = surveyService.findByIdForOwner(id, principal);
+    public ResponseEntity<SurveySubmissionResponse> getSurveyByIdForOwner(@PathVariable Long id, Principal principal) {
+        SurveySubmissionResponse survey = surveyService.findByIdForOwner(id, principal);
         return new ResponseEntity<>(survey, HttpStatus.OK);
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<SurveyResponse>> getSurveysByUser(Principal principal) {
-        return ResponseEntity.ok(surveyService.getByUser(principal));
+    public ResponseEntity<List<SurveyResponse>> getSurveysByUserForReport(Principal principal) {
+        return ResponseEntity.ok(surveyService.getByUserForReport(principal));
+    }
+
+    @GetMapping("/user/paged")
+    public ResponseEntity<SurveyPagedResponse> getSurveysByUserWithPaging(
+            Principal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size
+    ) {
+        return ResponseEntity.ok(surveyService.getByUserWithPaging(principal, page, size));
+    }
+
+    @GetMapping("/user/{username}/paged")
+    public ResponseEntity<SurveyPagedResponse> getSurveysByUsernameWithPaging(
+            @PathVariable String username,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return ResponseEntity.ok(surveyService.getByUsernameWithPaging(username, page, size));
     }
 
     @PostMapping
-    public ResponseEntity<SurveyResponse> createSurvey(@RequestBody SurveyRequestDTO surveyRequest, Principal principal) {
-        SurveyResponse createdSurvey = surveyService.save(surveyRequest, principal);
-        return new ResponseEntity<>(createdSurvey, HttpStatus.CREATED);
+    public ResponseEntity<Void> createSurvey(@RequestBody SurveyRequestDTO surveyRequest, Principal principal) {
+        surveyService.save(surveyRequest, principal);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SurveyResponse> updateSurvey(@PathVariable Long id, @RequestBody SurveyRequestDTO surveyRequest) {
-        SurveyResponse updatedSurvey = surveyService.update(id, surveyRequest);
-        return new ResponseEntity<>(updatedSurvey, HttpStatus.OK);
+    public ResponseEntity<Void> updateSurvey(@PathVariable Long id, @RequestBody SurveyRequestDTO surveyRequest) {
+        surveyService.update(id, surveyRequest);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSurvey(@PathVariable Long id) {
         surveyService.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/participants")

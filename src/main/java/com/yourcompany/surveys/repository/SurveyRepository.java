@@ -5,6 +5,8 @@ import com.yourcompany.surveys.dto.report.UserSatisfactionReportResponse;
 import com.yourcompany.surveys.dto.report.UserSurveyParticipationCountResponse;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +18,9 @@ import java.util.List;
 public interface SurveyRepository extends JpaRepository<Survey, Long> {
     Survey findByIdAndCreator(Long id, User creator);
     List<Survey> findByCreator(User creator);
+    Page<Survey> findByCreator(User creator, Pageable pageable);
+    Page<Survey> findByCreatorUsername(String username, Pageable pageable);
+    Page<Survey> findAll(Pageable pageable);
 
     @Query("SELECT new com.yourcompany.surveys.dto.report.PopularSurveyReportResponse(" +
             "s.id, s.title, COUNT(p.id)) " +

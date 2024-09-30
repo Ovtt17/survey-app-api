@@ -6,6 +6,7 @@ import com.yourcompany.surveys.entity.Answer;
 import com.yourcompany.surveys.entity.Participation;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
+import com.yourcompany.surveys.handler.exception.UserNotFoundException;
 import com.yourcompany.surveys.mapper.AnswerMapper;
 import com.yourcompany.surveys.repository.AnswerRepository;
 import com.yourcompany.surveys.repository.ParticipationRepository;
@@ -40,7 +41,7 @@ public class AnswerService {
     public void save(List<AnswerRequestDTO> answers, Principal principal) {
         String email = principal.getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("Usuario no  encontrado con email: " + email));
 
         Survey survey = Survey.builder().id(answers.get(0).surveyId()).build();
 
@@ -60,7 +61,7 @@ public class AnswerService {
     public AnswerResponse update(Long id, AnswerRequestDTO answer, Principal principal) {
         String email = principal.getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("Usuario no  encontrado con email: " + email));
         Answer answerEntity = answerMapper.toEntity(answer, user);
         answerEntity.setId(id);
         answerRepository.save(answerEntity);

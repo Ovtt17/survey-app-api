@@ -1,11 +1,14 @@
 package com.yourcompany.surveys.mapper;
 
+import com.yourcompany.surveys.dto.survey.SurveyPagedResponse;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
+import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
@@ -17,8 +20,8 @@ public class SurveyMapper {
     private final UserMapper userMapper;
     private final QuestionMapper questionMapper;
 
-    public SurveyResponse toResponse(Survey survey) {
-        return new SurveyResponse(
+    public SurveySubmissionResponse toSubmissionResponse(Survey survey) {
+        return new SurveySubmissionResponse(
                 survey.getId(),
                 survey.getTitle(),
                 survey.getDescription(),
@@ -28,6 +31,29 @@ public class SurveyMapper {
                         .collect(Collectors.toList()),
                 survey.getAverageRating(),
                 survey.getRatingCount()
+        );
+    }
+
+    public SurveyResponse toResponse (Survey survey) {
+        return new SurveyResponse(
+                survey.getId(),
+                survey.getTitle(),
+                survey.getDescription(),
+                survey.getCreator().getFullName(),
+                survey.getCreator().getName(),
+                survey.getCreator().getProfilePictureUrl(),
+                survey.getAverageRating(),
+                survey.getRatingCount()
+        );
+    }
+
+    public SurveyPagedResponse toPagedResponse(Page<Survey> surveys) {
+        return new SurveyPagedResponse(
+                surveys.stream()
+                        .map(this::toResponse)
+                        .toList(),
+                surveys.getNumber(),
+                surveys.getTotalPages()
         );
     }
 
