@@ -29,4 +29,11 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con nombre de usuario: " + username));
         return userMapper.toUserResponse(user);
     }
+
+    public void updateUserProfilePicture(String username, String imageLink) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con nombre de usuario: " + username));
+        user.setProfilePictureUrl(imageLink);
+        userRepository.save(user);
+    }
 }

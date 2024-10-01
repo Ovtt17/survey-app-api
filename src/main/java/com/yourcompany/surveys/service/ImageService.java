@@ -1,5 +1,6 @@
 package com.yourcompany.surveys.service;
 
+import com.yourcompany.surveys.entity.ImageType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
@@ -25,50 +26,85 @@ public class ImageService {
     private static final long MAX_IMAGE_SIZE_MB = 5;
     private static final long MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
-    public String uploadProfilePicture(MultipartFile image, String username, String imageType) {
+    public String uploadProfilePicture(
+            MultipartFile image,
+            String username,
+            ImageType imageType
+    ) {
+        String profilePictureName = username + "_" + imageType.getType();
+        return uploadImage(image, profilePictureName);
+    }
+
+    public String uploadSurveyPicture(
+            MultipartFile image,
+            Long surveyId,
+            String username,
+            ImageType imageType
+    ) {
+        String surveyPictureName = "survey_" + surveyId + "_" + username + "_" + imageType.getType();
+        return uploadImage(image, surveyPictureName);
+    }
+
+    private String uploadImage(
+            MultipartFile image,
+            String imageName
+    ) {
         try {
-            if (image.getSize() > MAX_IMAGE_SIZE_BYTES) {
+            if (isImageSizeExceeded(image)) {
                 return "El tamaño de la imagen excede el límite de 5 MB.";
             }
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-            headers.set("Authorization", "Bearer " + accessToken);
-
-            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("image", new ByteArrayResource(image.getBytes()) {
-                @Override
-                public String getFilename() {
-                    return image.getOriginalFilename();
-                }
-            });
-            body.add("type", "file");
-            String imageName = username + "_" + imageType;
-            body.add("type", "file");
-            body.add("name", imageName);
-            body.add("title", imageName);
-
+            HttpHeaders headers = createHeaders();
+            MultiValueMap<String, Object> body = createRequestBody(image, imageName);
             HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
 
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<Map<String, Object>> response = restTemplate
-                    .exchange(imgur_url,HttpMethod.POST,request,new ParameterizedTypeReference<>() {} );
-
-            Map<String, Object> responseData = response.getBody();
-            if (responseData != null) {
-                Object data = responseData.get("data");
-                if (data instanceof Map) {
-                    Object imageLink = ((Map<?, ?>) data).get("link");
-                    if (imageLink instanceof String) {
-                        return (String) imageLink;
-                    }
-                }
-            }
-            return "Error al subir la imagen a Imgur o el enlace no es válido.";
+            return uploadImageToServer(request);
         } catch (IOException e) {
             return "Error al procesar la imagen: " + e.getMessage();
         } catch (Exception e) {
             return "Error inesperado: " + e.getMessage();
         }
+    }
+
+    private boolean isImageSizeExceeded(MultipartFile image) {
+        return image.getSize() > MAX_IMAGE_SIZE_BYTES;
+    }
+
+    private HttpHeaders createHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.set("Authorization", "Bearer " + accessToken);
+        return headers;
+    }
+
+    private MultiValueMap<String, Object> createRequestBody(MultipartFile image, String imageName) throws IOException {
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("image", new ByteArrayResource(image.getBytes()) {
+            @Override
+            public String getFilename() {
+                return image.getOriginalFilename();
+            }
+        });
+        body.add("type", "file");
+        body.add("name", imageName);
+        body.add("title", imageName);
+        return body;
+    }
+
+    private String uploadImageToServer(HttpEntity<MultiValueMap<String, Object>> request) {
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(imgur_url, HttpMethod.POST, request, new ParameterizedTypeReference<>() {});
+
+        Map<String, Object> responseData = response.getBody();
+        if (responseData != null) {
+            Object data = responseData.get("data");
+            if (data instanceof Map) {
+                Object imageLink = ((Map<?, ?>) data).get("link");
+                if (imageLink instanceof String) {
+                    return (String) imageLink;
+                }
+            }
+        }
+        return "Error al subir la imagen a Imgur o el enlace no es válido.";
     }
 }
