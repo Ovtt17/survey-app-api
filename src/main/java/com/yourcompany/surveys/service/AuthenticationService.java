@@ -4,6 +4,7 @@ import com.yourcompany.surveys.dto.user.AuthenticationRequest;
 import com.yourcompany.surveys.dto.user.AuthenticationResponse;
 import com.yourcompany.surveys.dto.user.RegistrationRequest;
 import com.yourcompany.surveys.entity.EmailTemplateName;
+import com.yourcompany.surveys.entity.ImageType;
 import com.yourcompany.surveys.entity.Token;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.mapper.UserMapper;
@@ -65,7 +66,7 @@ public class AuthenticationService {
             String imageUrl = imageService.uploadProfilePicture(
                     request.getProfilePicture(),
                     username,
-                    "profile_picture"
+                    ImageType.PROFILE_PICTURE
             );
             user.setProfilePictureUrl(imageUrl);
         }
