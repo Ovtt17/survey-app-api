@@ -25,7 +25,7 @@ public class ImageService {
     private static final long MAX_IMAGE_SIZE_MB = 5;
     private static final long MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
-    public String uploadImage (MultipartFile image, String username, String imageType) {
+    public String uploadProfilePicture(MultipartFile image, String username, String imageType) {
         try {
             if (image.getSize() > MAX_IMAGE_SIZE_BYTES) {
                 return "El tamaño de la imagen excede el límite de 5 MB.";
