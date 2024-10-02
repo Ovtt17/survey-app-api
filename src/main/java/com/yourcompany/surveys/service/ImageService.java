@@ -1,6 +1,8 @@
 package com.yourcompany.surveys.service;
 
+import com.yourcompany.surveys.dto.user.UserResponse;
 import com.yourcompany.surveys.entity.ImageType;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
@@ -16,8 +18,10 @@ import java.net.URI;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class ImageService {
 
+    private final UserService userService;
     @Value("${imgur.url.upload}")
     private String imgur_url;
 
@@ -46,18 +50,26 @@ public class ImageService {
         return uploadImage(image, surveyPictureName);
     }
 
-    public boolean deleteImage(String imageUrl) {
+    public ResponseEntity<String> deleteImage(String username) {
         try {
-            String imageHash = getHashFromUrl(imageUrl);
+            UserResponse user = userService.getUserByUsername(username);
+            if (user.profilePictureUrl() == null) {
+                return ResponseEntity.noContent().build();
+            }
+            String imageHash = getHashFromUrl(user.profilePictureUrl());
             String deleteUrl = imgur_url + "/" + imageHash;
             HttpHeaders headers = createHeaders();
             HttpEntity<String> request = new HttpEntity<>(headers);
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(deleteUrl, HttpMethod.DELETE, request, new ParameterizedTypeReference<>() {});
-            return response.getStatusCode().is2xxSuccessful();
+            if (response.getStatusCode().is2xxSuccessful()) {
+                userService.updateUserProfilePicture(username, null);
+                return ResponseEntity.ok("Foto de perfil eliminada correctamente.");
+            } else {
+                return ResponseEntity.status(response.getStatusCode()).body("Error al eliminar la foto de perfil.");
+            }
         } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocurrió un error inesperado: " + e.getMessage());
         }
     }
 
@@ -80,7 +92,6 @@ public class ImageService {
             if (isImageSizeExceeded(image)) {
                 return "El tamaño de la imagen excede el límite de 5 MB.";
             }
-
             HttpHeaders headers = createHeaders();
             MultiValueMap<String, Object> body = createRequestBody(image, imageName);
             HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
@@ -134,4 +145,6 @@ public class ImageService {
         }
         return "Error al subir la imagen a Imgur o el enlace no es válido.";
     }
+
+
 }
