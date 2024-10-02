@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 
 @Service
@@ -43,6 +44,32 @@ public class ImageService {
     ) {
         String surveyPictureName = "survey_" + surveyId + "_" + username + "_" + imageType.getType();
         return uploadImage(image, surveyPictureName);
+    }
+
+    public boolean deleteImage(String imageUrl) {
+        try {
+            String imageHash = getHashFromUrl(imageUrl);
+            String deleteUrl = imgur_url + "/" + imageHash;
+            HttpHeaders headers = createHeaders();
+            HttpEntity<String> request = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(deleteUrl, HttpMethod.DELETE, request, new ParameterizedTypeReference<>() {});
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private String getHashFromUrl (String imageUrl) {
+        URI uri = URI.create(imageUrl);
+        String path = uri.getPath();
+        int lastSlashIndex = path.lastIndexOf('/');
+        int dotIndex = path.lastIndexOf('.');
+        if (lastSlashIndex == -1 || dotIndex == -1 || dotIndex <= lastSlashIndex) {
+            throw new IllegalArgumentException("Invalid image URL format");
+        }
+        return path.substring(lastSlashIndex + 1, dotIndex);
     }
 
     private String uploadImage(

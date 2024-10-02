@@ -1,5 +1,6 @@
 package com.yourcompany.surveys.controller;
 
+import com.yourcompany.surveys.dto.user.UserResponse;
 import com.yourcompany.surveys.entity.ImageType;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.service.ImageService;
@@ -7,6 +8,7 @@ import com.yourcompany.surveys.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,6 +38,28 @@ public class ImageController {
         );
         userService.updateUserProfilePicture(username, imageLink);
         return ResponseEntity.ok(imageLink);
+    }
+
+    @DeleteMapping("/profile")
+    public ResponseEntity<String> deleteProfilePicture(Principal principal) {
+        String username = getUsername(principal);
+        UserResponse user = userService.getUserByUsername(username);
+        if (user.profilePictureUrl() == null) {
+            return ResponseEntity.noContent().build();
+        }
+        try {
+            boolean isDeletedFromImageServer = imageService.deleteImage(user.profilePictureUrl());
+            if (!isDeletedFromImageServer) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error al eliminar la foto de perfil.");
+            } else {
+                userService.updateUserProfilePicture(username, null);
+            }
+            return ResponseEntity.ok("Foto de perfil eliminada correctamente.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred: " + e.getMessage());
+        }
     }
 
     @PostMapping("/survey/{surveyId}")
