@@ -17,7 +17,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    public UserResponse getUser(Principal principal) {
+    public User getUserFromPrincipal(Principal principal) {
+        String email = principal.getName();
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new UserNotFoundException("Usuario no  encontrado con email: " + email)
+        );
+    }
+
+    public UserResponse getUserResponseFromPrincipal(Principal principal) {
         String email = principal.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no  encontrado con email: " + email));
