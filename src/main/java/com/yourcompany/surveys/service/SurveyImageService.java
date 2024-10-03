@@ -1,9 +1,7 @@
 package com.yourcompany.surveys.service;
 
 import com.yourcompany.surveys.entity.ImageType;
-import com.yourcompany.surveys.handler.exception.ImageDeletionException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
