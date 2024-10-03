@@ -38,8 +38,8 @@ public class AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final ImageService imageService;
     private final UserMapper userMapper;
+    private final UserImageService userImageService;
 
     @Value ("${application.security.jwt.mailing.front-end.activation-url}")
     private String activationUrl;
@@ -63,7 +63,7 @@ public class AuthenticationService {
 
         if (request.getProfilePicture() != null) {
             String username = user.getName();
-            String imageUrl = imageService.uploadProfilePicture(
+            String imageUrl = userImageService.uploadProfilePicture(
                     request.getProfilePicture(),
                     username,
                     ImageType.PROFILE_PICTURE

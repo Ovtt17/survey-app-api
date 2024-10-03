@@ -1,7 +1,7 @@
 package com.yourcompany.surveys.service;
 
-import com.yourcompany.surveys.dto.user.UserResponse;
-import com.yourcompany.surveys.entity.ImageType;
+import com.yourcompany.surveys.handler.exception.ImageDeletionException;
+import com.yourcompany.surveys.handler.exception.ImageUploadException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -10,6 +10,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,7 +22,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ImageService {
 
-    private final UserService userService;
     @Value("${imgur.url.upload}")
     private String imgur_url;
 
@@ -31,49 +31,27 @@ public class ImageService {
     private static final long MAX_IMAGE_SIZE_MB = 5;
     private static final long MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
-    public String uploadProfilePicture(
-            MultipartFile image,
-            String username,
-            ImageType imageType
-    ) {
-        String profilePictureName = username + "_" + imageType.getType();
-        return uploadImage(image, profilePictureName);
-    }
-
-    public String uploadSurveyPicture(
-            MultipartFile image,
-            Long surveyId,
-            String username,
-            ImageType imageType
-    ) {
-        String surveyPictureName = "survey_" + surveyId + "_" + username + "_" + imageType.getType();
-        return uploadImage(image, surveyPictureName);
-    }
-
-    public ResponseEntity<String> deleteImage(String username) {
+    public boolean deleteImage(String imageUrl) {
         try {
-            UserResponse user = userService.getUserByUsername(username);
-            if (user.profilePictureUrl() == null) {
-                return ResponseEntity.noContent().build();
-            }
-            String imageHash = getHashFromUrl(user.profilePictureUrl());
+            String imageHash = getHashFromUrl(imageUrl);
             String deleteUrl = imgur_url + "/" + imageHash;
             HttpHeaders headers = createHeaders();
             HttpEntity<String> request = new HttpEntity<>(headers);
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(deleteUrl, HttpMethod.DELETE, request, new ParameterizedTypeReference<>() {});
-            if (response.getStatusCode().is2xxSuccessful()) {
-                userService.updateUserProfilePicture(username, null);
-                return ResponseEntity.ok("Foto de perfil eliminada correctamente.");
-            } else {
-                return ResponseEntity.status(response.getStatusCode()).body("Error al eliminar la foto de perfil.");
+            boolean isSuccessful = response.getStatusCode().is2xxSuccessful();
+            if (!isSuccessful) {
+                throw new ImageDeletionException("Error al eliminar la foto: " + response.getStatusCode());
             }
+            return true;
+        } catch (ImageDeletionException e) {
+            throw e;
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocurrió un error inesperado: " + e.getMessage());
+            throw new ImageDeletionException("Error al eliminar la foto: " + e.getMessage(), e);
         }
     }
 
-    private String getHashFromUrl (String imageUrl) {
+    private String getHashFromUrl(String imageUrl) {
         URI uri = URI.create(imageUrl);
         String path = uri.getPath();
         int lastSlashIndex = path.lastIndexOf('/');
@@ -84,28 +62,29 @@ public class ImageService {
         return path.substring(lastSlashIndex + 1, dotIndex);
     }
 
-    private String uploadImage(
-            MultipartFile image,
-            String imageName
-    ) {
+    public String uploadImage(MultipartFile image, String imageName) {
         try {
-            if (isImageSizeExceeded(image)) {
-                return "El tamaño de la imagen excede el límite de 5 MB.";
-            }
+            validateImageSize(image);
             HttpHeaders headers = createHeaders();
             MultiValueMap<String, Object> body = createRequestBody(image, imageName);
             HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
-
             return uploadImageToServer(request);
-        } catch (IOException e) {
-            return "Error al procesar la imagen: " + e.getMessage();
+        }
+        catch (IOException e) {
+            throw new ImageUploadException("Error al procesar la imagen: " + e.getMessage(), e);
+        } catch (RestClientException e) {
+            throw new ImageUploadException("Error al subir la imagen al servidor: " + e.getMessage(), e);
+        } catch (ImageUploadException e) {
+            throw e;
         } catch (Exception e) {
-            return "Error inesperado: " + e.getMessage();
+            throw new ImageUploadException("Error inesperado: " + e.getMessage(), e);
         }
     }
 
-    private boolean isImageSizeExceeded(MultipartFile image) {
-        return image.getSize() > MAX_IMAGE_SIZE_BYTES;
+    private void validateImageSize(MultipartFile image) {
+        if (image.getSize() > MAX_IMAGE_SIZE_BYTES) {
+            throw new ImageUploadException("El tamaño de la imagen excede el límite de 5 MB.");
+        }
     }
 
     private HttpHeaders createHeaders() {
@@ -143,8 +122,6 @@ public class ImageService {
                 }
             }
         }
-        return "Error al subir la imagen a Imgur o el enlace no es válido.";
+        throw new ImageUploadException("Error al subir la imagen al servidor o el enlace no es válido.");
     }
-
-
 }

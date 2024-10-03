@@ -1,8 +1,8 @@
 package com.yourcompany.surveys.controller;
 
 import com.yourcompany.surveys.entity.ImageType;
-import com.yourcompany.surveys.service.ImageService;
-import com.yourcompany.surveys.service.UserService;
+import com.yourcompany.surveys.service.SurveyImageService;
+import com.yourcompany.surveys.service.UserImageService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +18,8 @@ import static com.yourcompany.surveys.entity.User.extractUsernameFromPrincipal;
 @RequiredArgsConstructor
 @Tag(name = "Images")
 public class ImageController {
-    private final ImageService imageService;
-    private final UserService userService;
+    private final UserImageService userImageService;
+    private final SurveyImageService surveyImageService;
 
     @PostMapping("/profile")
     public ResponseEntity<String> uploadProfilePicture(
@@ -27,33 +27,18 @@ public class ImageController {
             Principal principal
     ) {
         String username = extractUsernameFromPrincipal(principal);
-        String imageLink = imageService.uploadProfilePicture(
+        String profilePictureUrl = userImageService.uploadProfilePicture(
                 image,
                 username,
                 ImageType.PROFILE_PICTURE
         );
-        userService.updateUserProfilePicture(username, imageLink);
-        return ResponseEntity.ok(imageLink);
+        return ResponseEntity.ok(profilePictureUrl);
     }
 
     @DeleteMapping("/profile")
     public ResponseEntity<String> deleteProfilePicture(Principal principal) {
         String username = extractUsernameFromPrincipal(principal);
-        return imageService.deleteImage(username);
-    }
-
-    @PostMapping("/survey/{surveyId}")
-    public ResponseEntity<String> uploadSurveyPicture(
-            @PathVariable Long surveyId,
-            @ModelAttribute @Valid MultipartFile image,
-            Principal principal
-    ) {
-        String username = extractUsernameFromPrincipal(principal);
-        return ResponseEntity.ok(imageService.uploadSurveyPicture(
-                image,
-                surveyId,
-                username,
-                ImageType.SURVEY_PICTURE
-        ));
+        String response = userImageService.deleteProfilePicture(username);
+        return ResponseEntity.ok(response);
     }
 }
