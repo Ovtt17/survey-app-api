@@ -17,7 +17,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    public UserResponse getUser(Principal principal) {
+    public User getUserFromPrincipal(Principal principal) {
+        String email = principal.getName();
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new UserNotFoundException("Usuario no  encontrado con email: " + email)
+        );
+    }
+
+    public UserResponse getUserResponseFromPrincipal(Principal principal) {
         String email = principal.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no  encontrado con email: " + email));
@@ -28,5 +35,12 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con nombre de usuario: " + username));
         return userMapper.toUserResponse(user);
+    }
+
+    public void updateUserProfilePicture(String username, String imageLink) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con nombre de usuario: " + username));
+        user.setProfilePictureUrl(imageLink);
+        userRepository.save(user);
     }
 }

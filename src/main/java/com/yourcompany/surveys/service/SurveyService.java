@@ -9,14 +9,12 @@ import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.entity.*;
 import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
-import com.yourcompany.surveys.handler.exception.UserNotFoundException;
 import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;
 import com.yourcompany.surveys.mapper.QuestionOptionMapper;
 import com.yourcompany.surveys.mapper.SurveyMapper;
 import com.yourcompany.surveys.repository.ParticipationRepository;
 import com.yourcompany.surveys.repository.SurveyRepository;
-import com.yourcompany.surveys.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,18 +31,11 @@ import java.util.stream.Collectors;
 public class SurveyService {
     private final SurveyRepository surveyRepository;
     private final SurveyMapper surveyMapper;
-    private final UserRepository userRepository;
     private final QuestionMapper questionMapper;
     private final ParticipationRepository participationRepository;
     private final ParticipationMapper participationMapper;
     private final QuestionOptionMapper questionOptionMapper;
-
-    private User getUserFromPrincipal(Principal principal) {
-        String email = principal.getName();
-        return userRepository.findByEmail(email).orElseThrow(
-                () -> new UserNotFoundException("Usuario no  encontrado con email: " + email)
-        );
-    }
+    private final UserService userService;
 
     public SurveyPagedResponse getAllSurveys(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -69,7 +60,7 @@ public class SurveyService {
     }
 
     public SurveySubmissionResponse findByIdForOwner(Long id, Principal principal) {
-        User user = getUserFromPrincipal(principal);
+        User user = userService.getUserFromPrincipal(principal);
         Survey survey = surveyRepository.findByIdAndCreator(id, user);
         if (survey == null) {
             throw new SurveyNotFoundException("Encuesta no encontrada.");
@@ -78,7 +69,7 @@ public class SurveyService {
     }
 
     public List<SurveyResponse> getByUserForReport(Principal principal) {
-        User user = getUserFromPrincipal(principal);
+        User user = userService.getUserFromPrincipal(principal);
         List<Survey> surveys = surveyRepository.findByCreator(user);
         return surveys.stream()
                 .map(surveyMapper::toResponse)
@@ -90,7 +81,7 @@ public class SurveyService {
             int page,
             int size
     ) {
-        User user = getUserFromPrincipal(principal);
+        User user = userService.getUserFromPrincipal(principal);
         Pageable pageable = PageRequest.of(page, size);
         Page<Survey> surveys = surveyRepository.findByCreator(user, pageable);
         return surveyMapper.toPagedResponse(surveys);
@@ -108,14 +99,16 @@ public class SurveyService {
 
     @Transactional
     public void save(SurveyRequestDTO surveyRequest, Principal principal) {
-        User user = getUserFromPrincipal(principal);
+        User user = userService.getUserFromPrincipal(principal);
         Survey survey = surveyMapper.toEntity(surveyRequest, user);
         survey = surveyRepository.save(survey);
         surveyMapper.toSubmissionResponse(survey);
     }
 
     public void update(Long id, SurveyRequestDTO surveyRequest) {
-        Survey existingSurvey = surveyRepository.findById(id).orElseThrow();
+        Survey existingSurvey = surveyRepository.findById(id).orElseThrow(
+                () -> new SurveyNotFoundException("Encuesta no encontrada.")
+        );
         updateSurveyDetails(existingSurvey, surveyRequest);
         updateExistingQuestions(existingSurvey, surveyRequest);
         addNewQuestions(existingSurvey, surveyRequest);

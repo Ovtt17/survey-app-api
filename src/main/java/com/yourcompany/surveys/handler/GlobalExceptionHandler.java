@@ -1,7 +1,6 @@
 package com.yourcompany.surveys.handler;
 
-import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
-import com.yourcompany.surveys.handler.exception.UserNotFoundException;
+import com.yourcompany.surveys.handler.exception.*;
 import jakarta.mail.MessagingException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -121,6 +120,45 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(USER_NOT_FOUND.getCode())
                                 .businessErrorDescription(USER_NOT_FOUND.getDescription())
+                                .error(e.getMessage())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(ImageDeletionException.class)
+    public ResponseEntity<ExceptionResponse> handleImageDeletionException (ImageDeletionException e) {
+        return ResponseEntity
+                .status(INTERNAL_SERVER_ERROR)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(IMAGE_DELETION_ERROR.getCode())
+                                .businessErrorDescription(IMAGE_DELETION_ERROR.getDescription())
+                                .error(e.getMessage())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(ImageUploadException.class)
+    public ResponseEntity<ExceptionResponse> handleImageUploadException (ImageUploadException e) {
+        return ResponseEntity
+                .status(INTERNAL_SERVER_ERROR)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(IMAGE_UPLOAD_ERROR.getCode())
+                                .businessErrorDescription(IMAGE_UPLOAD_ERROR.getDescription())
+                                .error(e.getMessage())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(ImageNoContentException.class)
+    public ResponseEntity<ExceptionResponse> handleImageNoContentException(ImageNoContentException e) {
+        return ResponseEntity
+                .status(NO_CONTENT)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(IMAGE_NO_CONTENT.getCode())
+                                .businessErrorDescription(IMAGE_NO_CONTENT.getDescription())
                                 .error(e.getMessage())
                                 .build()
                 );

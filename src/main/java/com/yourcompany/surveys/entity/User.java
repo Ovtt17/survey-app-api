@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -135,5 +136,11 @@ public class User implements UserDetails, Principal {
 
     public String getFullName() {
         return firstName + " " + lastName;
+    }
+
+    public static String extractUsernameFromPrincipal(Principal principal) {
+        Authentication authentication = (Authentication) principal;
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ((User) userDetails).getName();
     }
 }

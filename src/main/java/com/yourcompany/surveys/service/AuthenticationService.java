@@ -4,6 +4,7 @@ import com.yourcompany.surveys.dto.user.AuthenticationRequest;
 import com.yourcompany.surveys.dto.user.AuthenticationResponse;
 import com.yourcompany.surveys.dto.user.RegistrationRequest;
 import com.yourcompany.surveys.entity.EmailTemplateName;
+import com.yourcompany.surveys.entity.ImageType;
 import com.yourcompany.surveys.entity.Token;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.mapper.UserMapper;
@@ -37,8 +38,8 @@ public class AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final ImageService imageService;
     private final UserMapper userMapper;
+    private final UserImageService userImageService;
 
     @Value ("${application.security.jwt.mailing.front-end.activation-url}")
     private String activationUrl;
@@ -62,10 +63,10 @@ public class AuthenticationService {
 
         if (request.getProfilePicture() != null) {
             String username = user.getName();
-            String imageUrl = imageService.uploadImage(
+            String imageUrl = userImageService.uploadProfilePicture(
                     request.getProfilePicture(),
                     username,
-                    "profile_picture"
+                    ImageType.PROFILE_PICTURE
             );
             user.setProfilePictureUrl(imageUrl);
         }
