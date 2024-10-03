@@ -21,10 +21,16 @@ public class UserImageService {
             ImageType imageType
     ) {
         try {
+            UserResponse user = userService.getUserByUsername(username);
+            String currentProfilePictureUrl = user.profilePictureUrl();
+
+            if (currentProfilePictureUrl != null) {
+                imageService.deleteImage(currentProfilePictureUrl);
+            }
             String profilePictureName = username + "_" + imageType.getType();
-            String profilePictureUrl = imageService.uploadImage(image, profilePictureName);
-            userService.updateUserProfilePicture(username, profilePictureUrl);
-            return profilePictureUrl;
+            String newProfilePictureUrl = imageService.uploadImage(image, profilePictureName);
+            userService.updateUserProfilePicture(username, newProfilePictureUrl);
+            return newProfilePictureUrl;
         } catch (Exception e) {
             throw new ImageUploadException("Error al subir la foto de perfil: " + e.getMessage());
         }
@@ -34,7 +40,6 @@ public class UserImageService {
         try {
             UserResponse user = userService.getUserByUsername(username);
             String profilePictureUrl = user.profilePictureUrl();
-
             if (profilePictureUrl == null) {
                 throw new ImageNoContentException("No tiene foto de perfil.");
             }
