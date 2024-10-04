@@ -185,4 +185,12 @@ public class SurveyService {
                 .map(participationMapper::toResponse)
                 .toList();
     }
+
+    public void updateSurveyPicture(Long surveyId, String newSurveyPictureUrl) {
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada.")
+        );
+        survey.setPictureUrl(newSurveyPictureUrl);
+        surveyRepository.save(survey);
+    }
 }

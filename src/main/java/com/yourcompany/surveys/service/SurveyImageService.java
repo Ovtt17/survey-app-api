@@ -1,9 +1,10 @@
 package com.yourcompany.surveys.service;
 
-import com.yourcompany.surveys.entity.ImageType;
+import com.yourcompany.surveys.dto.survey.SurveyImageRequest;
+import com.yourcompany.surveys.dto.survey.SurveyResponse;
+import com.yourcompany.surveys.handler.exception.ImageUploadException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -12,12 +13,21 @@ public class SurveyImageService {
     private final SurveyService surveyService;
 
     public String uploadSurveyPicture(
-            MultipartFile image,
-            Long surveyId,
-            String username,
-            ImageType imageType
+            SurveyImageRequest request
     ) {
-        String surveyPictureName = "survey_" + surveyId + "_" + username + "_" + imageType.getType();
-        return imageService.uploadImage(image, surveyPictureName);
+        try {
+            SurveyResponse survey = surveyService.findById(request.surveyId());
+            String currentSurveyPictureUrl = survey.pictureUrl();
+
+            if (currentSurveyPictureUrl != null) {
+                imageService.deleteImage(currentSurveyPictureUrl);
+            }
+            String surveyPictureName = "survey_" + request.surveyId() + "_" + request.username() + "_" + request.imageType().getType();
+            String newSurveyPictureUrl = imageService.uploadImage(request.image(), surveyPictureName);
+            surveyService.updateSurveyPicture(request.surveyId(), newSurveyPictureUrl);
+            return newSurveyPictureUrl;
+        } catch (Exception e) {
+            throw new ImageUploadException("Error al subir la foto de la encuesta: " + e.getMessage());
+        }
     }
 }
