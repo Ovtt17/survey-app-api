@@ -3,10 +3,7 @@ package com.yourcompany.surveys.service;
 import com.yourcompany.surveys.dto.participation.ParticipationResponse;
 import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
-import com.yourcompany.surveys.dto.survey.SurveyPagedResponse;
-import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
-import com.yourcompany.surveys.dto.survey.SurveyResponse;
-import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
+import com.yourcompany.surveys.dto.survey.*;
 import com.yourcompany.surveys.entity.*;
 import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
 import com.yourcompany.surveys.mapper.ParticipationMapper;
@@ -36,6 +33,7 @@ public class SurveyService {
     private final ParticipationMapper participationMapper;
     private final QuestionOptionMapper questionOptionMapper;
     private final UserService userService;
+    private final SurveyImageService surveyImageService;
 
     public SurveyPagedResponse getAllSurveys(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -101,8 +99,22 @@ public class SurveyService {
     public void save(SurveyRequestDTO surveyRequest, Principal principal) {
         User user = userService.getUserFromPrincipal(principal);
         Survey survey = surveyMapper.toEntity(surveyRequest, user);
-        survey = surveyRepository.save(survey);
-        surveyMapper.toSubmissionResponse(survey);
+        handleSurveyPicture(surveyRequest, user, survey);
+        surveyRepository.save(survey);
+    }
+
+    private void handleSurveyPicture(SurveyRequestDTO surveyRequest, User user, Survey survey) {
+        if (surveyRequest.picture() != null) {
+            String username = user.getName();
+            String imageUrl = surveyImageService.uploadSurveyPicture(
+                    SurveyImageRequest.builder()
+                            .image(surveyRequest.picture())
+                            .username(username)
+                            .imageType(ImageType.SURVEY_PICTURE)
+                            .build()
+            );
+            survey.setPictureUrl(imageUrl);
+        }
     }
 
     public void update(Long id, SurveyRequestDTO surveyRequest) {
