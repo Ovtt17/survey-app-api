@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(BAD_CREDENTIALS.getCode())
                                 .businessErrorDescription(BAD_CREDENTIALS.getDescription())
-                                .error(BAD_CREDENTIALS.getDescription())
+                                .error(e.getMessage())
                                 .build()
                 );
     }
@@ -108,7 +108,7 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(SURVEY_NOT_FOUND.getCode())
                                 .businessErrorDescription(SURVEY_NOT_FOUND.getDescription())
-                                .error(SURVEY_NOT_FOUND.getDescription())
+                                .error(e.getMessage())
                                 .build()
                 );
     }

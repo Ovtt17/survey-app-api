@@ -1,8 +1,7 @@
 package com.yourcompany.surveys.controller;
 
-import com.yourcompany.surveys.dto.survey.SurveyImageRequest;
 import com.yourcompany.surveys.entity.ImageType;
-import com.yourcompany.surveys.service.SurveyImageService;
+import com.yourcompany.surveys.service.SurveyService;
 import com.yourcompany.surveys.service.UserImageService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -20,7 +19,7 @@ import static com.yourcompany.surveys.entity.User.extractUsernameFromPrincipal;
 @Tag(name = "Images")
 public class ImageController {
     private final UserImageService userImageService;
-    private final SurveyImageService surveyImageService;
+    private final SurveyService surveyService;
 
     @PostMapping("/profile")
     public ResponseEntity<String> uploadProfilePicture(@ModelAttribute @Valid MultipartFile image, Principal principal) {
@@ -43,18 +42,19 @@ public class ImageController {
     @PostMapping("/survey/{surveyId}")
     public ResponseEntity<String> uploadSurveyPicture(
             @PathVariable Long surveyId,
-            @ModelAttribute @Valid MultipartFile image,
+            @ModelAttribute @Valid MultipartFile picture,
             Principal principal
     ) {
-        String username = extractUsernameFromPrincipal(principal);
-        String surveyPictureUrl = surveyImageService.uploadSurveyPicture(
-               SurveyImageRequest.builder()
-                       .image(image)
-                       .surveyId(surveyId)
-                       .username(username)
-                       .imageType(ImageType.SURVEY_PICTURE)
-                       .build()
-        );
+        String surveyPictureUrl = surveyService.updateSurveyPicture(surveyId, picture, principal);
         return ResponseEntity.ok(surveyPictureUrl);
+    }
+
+    @DeleteMapping("/survey/{surveyId}")
+    public ResponseEntity<String> deleteSurveyPicture(
+            @PathVariable Long surveyId,
+            Principal principal
+    ) {
+        String response = surveyService.deleteSurveyPicture(surveyId, principal);
+        return ResponseEntity.ok(response);
     }
 }

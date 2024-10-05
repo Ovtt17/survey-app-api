@@ -6,7 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Builder
 public record SurveyImageRequest (
-        MultipartFile image,
+        MultipartFile picture,
         Long surveyId,
         String username,
         ImageType imageType

@@ -57,7 +57,7 @@ public class ImageService {
         int lastSlashIndex = path.lastIndexOf('/');
         int dotIndex = path.lastIndexOf('.');
         if (lastSlashIndex == -1 || dotIndex == -1 || dotIndex <= lastSlashIndex) {
-            throw new IllegalArgumentException("Invalid image URL format");
+            throw new IllegalArgumentException("Invalid picture URL format");
         }
         return path.substring(lastSlashIndex + 1, dotIndex);
     }

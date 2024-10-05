@@ -5,7 +5,10 @@ import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.survey.*;
 import com.yourcompany.surveys.entity.*;
+import com.yourcompany.surveys.handler.exception.ImageDeletionException;
+import com.yourcompany.surveys.handler.exception.ImageNoContentException;
 import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
+import com.yourcompany.surveys.handler.exception.UnauthorizedException;
 import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;
 import com.yourcompany.surveys.mapper.QuestionOptionMapper;
@@ -18,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.*;
@@ -99,21 +103,76 @@ public class SurveyService {
     public void save(SurveyRequestDTO surveyRequest, Principal principal) {
         User user = userService.getUserFromPrincipal(principal);
         Survey survey = surveyMapper.toEntity(surveyRequest, user);
-        handleSurveyPicture(surveyRequest, user, survey);
+        processSurveyPictureIfPresent(surveyRequest.picture(), survey, user);
         surveyRepository.save(survey);
     }
 
-    private void handleSurveyPicture(SurveyRequestDTO surveyRequest, User user, Survey survey) {
-        if (surveyRequest.picture() != null) {
-            String username = user.getName();
-            String imageUrl = surveyImageService.uploadSurveyPicture(
-                    SurveyImageRequest.builder()
-                            .image(surveyRequest.picture())
-                            .username(username)
-                            .imageType(ImageType.SURVEY_PICTURE)
-                            .build()
-            );
-            survey.setPictureUrl(imageUrl);
+    @Transactional
+    public String updateSurveyPicture(Long surveyId, MultipartFile newPicture, Principal principal) {
+        User user = userService.getUserFromPrincipal(principal);
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + surveyId));
+        validateSurveyOwnership(survey, user);
+        deleteExistingPictureIfPresent(survey);
+        processSurveyPictureIfPresent(newPicture, survey, user);
+        Survey surveyWithPictureModified = surveyRepository.save(survey);
+        return surveyWithPictureModified.getPictureUrl();
+    }
+
+    private void processSurveyPictureIfPresent(MultipartFile newPicture, Survey survey, User user) {
+        if (newPicture != null) {
+            SurveyImageRequest imageRequest = SurveyImageRequest.builder()
+                    .picture(newPicture)
+                    .surveyId(survey.getId())
+                    .username(user.getUsername())
+                    .imageType(ImageType.SURVEY_PICTURE)
+                    .build();
+            uploadAndSetSurveyPicture(imageRequest, survey);
+        }
+    }
+
+    private void uploadAndSetSurveyPicture(SurveyImageRequest imageRequest, Survey survey) {
+        String imageUrl = surveyImageService.uploadSurveyPicture(imageRequest);
+        survey.setPictureUrl(imageUrl);
+    }
+
+    private void deleteExistingPictureIfPresent(Survey survey) {
+        if (survey.getPictureUrl() != null) {
+            deleteExistingPicture(survey.getPictureUrl());
+            survey.setPictureUrl(null);
+        }
+    }
+
+    private void deleteExistingPicture(String pictureUrl) {
+        try {
+            boolean isPictureDeleted = surveyImageService.deleteSurveyPicture(pictureUrl);
+            if (!isPictureDeleted) {
+                throw new ImageDeletionException("Error al eliminar la foto de la encuesta.");
+            }
+        } catch (Exception e) {
+            throw new ImageDeletionException("Error inesperado al eliminar la foto de la encuesta: " + e.getMessage(), e);
+        }
+    }
+
+    public String deleteSurveyPicture(Long surveyId, Principal principal) {
+        User user = userService.getUserFromPrincipal(principal);
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + surveyId));
+        validateSurveyOwnership(survey, user);
+
+        if (survey.getPictureUrl() == null) {
+            throw new ImageNoContentException("La encuesta no tiene foto.");
+        }
+
+        deleteExistingPicture(survey.getPictureUrl());
+        survey.setPictureUrl(null);
+        surveyRepository.save(survey);
+        return "Foto de la encuesta eliminada correctamente de la encuesta ." + surveyId;
+    }
+
+    private void validateSurveyOwnership(Survey survey, User user) {
+        if (!survey.getCreator().equals(user)) {
+            throw new UnauthorizedException("No tienes permiso para actualizar esta encuesta.");
         }
     }
 
@@ -198,11 +257,4 @@ public class SurveyService {
                 .toList();
     }
 
-    public void updateSurveyPicture(Long surveyId, String newSurveyPictureUrl) {
-        Survey survey = surveyRepository.findById(surveyId)
-                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada.")
-        );
-        survey.setPictureUrl(newSurveyPictureUrl);
-        surveyRepository.save(survey);
-    }
 }
