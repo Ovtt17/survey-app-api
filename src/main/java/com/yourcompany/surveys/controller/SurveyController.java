@@ -73,14 +73,14 @@ public class SurveyController {
 
     @PostMapping
     public ResponseEntity<String> createSurvey(@RequestBody SurveyRequestDTO surveyRequest, Principal principal) {
-        surveyService.save(surveyRequest, principal);
-        return ResponseEntity.ok("Encuesta creada exitosamente.");
+        String surveyTitle = surveyService.save(surveyRequest, principal);
+        return ResponseEntity.ok("Encuesta con título: " + surveyTitle + " creada exitosamente.");
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<String> updateSurvey(@PathVariable Long id, @RequestBody SurveyRequestDTO surveyRequest) {
-        surveyService.update(id, surveyRequest);
-        return ResponseEntity.ok("Encuesta actualizada exitosamente.");
+        Long surveyId = surveyService.update(id, surveyRequest);
+        return ResponseEntity.ok("Encuesta con ID: " + surveyId + " actualizada exitosamente.");
     }
 
     @DeleteMapping("/{id}")
