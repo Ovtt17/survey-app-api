@@ -72,21 +72,21 @@ public class SurveyController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createSurvey(@RequestBody SurveyRequestDTO surveyRequest, Principal principal) {
+    public ResponseEntity<String> createSurvey(@RequestBody SurveyRequestDTO surveyRequest, Principal principal) {
         surveyService.save(surveyRequest, principal);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Encuesta creada exitosamente.");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateSurvey(@PathVariable Long id, @RequestBody SurveyRequestDTO surveyRequest) {
+    public ResponseEntity<String> updateSurvey(@PathVariable Long id, @RequestBody SurveyRequestDTO surveyRequest) {
         surveyService.update(id, surveyRequest);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Encuesta actualizada exitosamente.");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSurvey(@PathVariable Long id) {
+    public ResponseEntity<String> deleteSurvey(@PathVariable Long id) {
         surveyService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Encuesta eliminada exitosamente.");
     }
 
     @GetMapping("/{id}/participants")
