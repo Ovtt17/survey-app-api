@@ -11,6 +11,7 @@ public record QuestionRequestDTO (
         String text,
         @NotBlank(message = "El tipo de pregunta es obligatorio")
         String type,
+        Boolean isCorrect,
         @NotEmpty(message = "Debe proporcionar al menos una opción para cada pregunta")
         List<QuestionOptionRequestDTO> options
 ) {
