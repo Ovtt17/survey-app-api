@@ -13,7 +13,6 @@ public record SurveyRequestDTO(
         String title,
         @NotBlank(message = "La descripción es obligatoria")
         String description,
-        MultipartFile picture,
         @NotNull(message = "Las preguntas son obligatorias")
         List<QuestionRequestDTO> questions
 ) {
