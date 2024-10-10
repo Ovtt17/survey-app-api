@@ -7,10 +7,12 @@ import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.service.SurveyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
@@ -72,14 +74,28 @@ public class SurveyController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createSurvey(@RequestBody SurveyRequestDTO surveyRequest, Principal principal) {
-        String surveyTitle = surveyService.save(surveyRequest, principal);
+    public ResponseEntity<String> createSurvey(
+            @RequestPart @Valid SurveyRequestDTO surveyRequest,
+            @RequestPart(required = false) MultipartFile picture,
+            Principal principal
+    ) {
+        String surveyTitle = surveyService.save(surveyRequest, picture, principal);
         return ResponseEntity.ok("Encuesta con título: " + surveyTitle + " creada exitosamente.");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateSurvey(@PathVariable Long id, @RequestBody SurveyRequestDTO surveyRequest) {
-        Long surveyId = surveyService.update(id, surveyRequest);
+    public ResponseEntity<String> updateSurvey(
+            @PathVariable Long id,
+            @RequestPart @Valid SurveyRequestDTO surveyRequest,
+            @RequestPart(required = false) MultipartFile picture,
+            Principal principal
+    ) {
+        Long surveyId = surveyService.update(
+                id,
+                surveyRequest,
+                picture,
+                principal
+        );
         return ResponseEntity.ok("Encuesta con ID: " + surveyId + " actualizada exitosamente.");
     }
 

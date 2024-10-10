@@ -100,10 +100,10 @@ public class SurveyService {
     }
 
     @Transactional
-    public String save(SurveyRequestDTO surveyRequest, Principal principal) {
+    public String save(SurveyRequestDTO surveyRequest, MultipartFile picture, Principal principal) {
         User user = userService.getUserFromPrincipal(principal);
         Survey survey = surveyMapper.toEntity(surveyRequest, user);
-        processSurveyPictureIfPresent(surveyRequest.picture(), survey, user);
+        processSurveyPictureIfPresent(picture, survey, user);
         Survey savedSurvey = surveyRepository.save(survey);
         return savedSurvey.getTitle();
     }
@@ -177,10 +177,18 @@ public class SurveyService {
         }
     }
 
-    public Long update(Long id, SurveyRequestDTO surveyRequest) {
-        Survey existingSurvey = surveyRepository.findById(id).orElseThrow(
-                () -> new SurveyNotFoundException("Encuesta no encontrada.")
-        );
+    @Transactional
+    public Long update(
+            Long surveyId,
+            SurveyRequestDTO surveyRequest,
+            MultipartFile picture,
+            Principal principal
+    ) {
+        User user = userService.getUserFromPrincipal(principal);
+        Survey existingSurvey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + surveyId));
+        validateSurveyOwnership(existingSurvey, user);
+        processSurveyPictureIfPresent(picture, existingSurvey, user);
         updateSurveyDetails(existingSurvey, surveyRequest);
         updateExistingQuestions(existingSurvey, surveyRequest);
         addNewQuestions(existingSurvey, surveyRequest);

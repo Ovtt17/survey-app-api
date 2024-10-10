@@ -26,6 +26,7 @@ public class SurveyMapper {
                 survey.getTitle(),
                 survey.getDescription(),
                 userMapper.toUserResponse(survey.getCreator()),
+                survey.getPictureUrl(),
                 survey.getQuestions().stream()
                         .map(questionMapper::toResponse)
                         .collect(Collectors.toList()),
