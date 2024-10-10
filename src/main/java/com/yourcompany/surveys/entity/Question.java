@@ -28,6 +28,8 @@ public class Question {
     @Column(nullable = false)
     private QuestionType type;
 
+    private boolean isCorrect;
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionOption> options;
 
