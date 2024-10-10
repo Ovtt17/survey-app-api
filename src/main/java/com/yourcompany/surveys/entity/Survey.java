@@ -28,7 +28,6 @@ public class Survey {
     @Column(nullable = false, length = 500)
     private String description;
 
-    @Column (unique = true)
     private String pictureUrl;
 
     @Column(nullable = false, insertable = false, columnDefinition = "double(5,1) default 0.0")
