@@ -6,6 +6,7 @@ public record QuestionResponse(
         Long id,
         String text,
         String type,
+        Boolean isCorrect,
         List<QuestionOptionResponse> options
 ) {
 }
