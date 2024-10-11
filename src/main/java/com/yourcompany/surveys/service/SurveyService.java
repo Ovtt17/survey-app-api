@@ -191,8 +191,7 @@ public class SurveyService {
         processSurveyPictureIfPresent(picture, existingSurvey, user);
         updateSurveyDetails(existingSurvey, surveyRequest);
         updateExistingQuestions(existingSurvey, surveyRequest);
-        addNewQuestions(existingSurvey, surveyRequest);
-        surveyMapper.toSubmissionResponse(surveyRepository.save(existingSurvey));
+        surveyRepository.save(existingSurvey);
         return existingSurvey.getId();
     }
 
@@ -213,15 +212,26 @@ public class SurveyService {
                 QuestionRequestDTO questionRequest = requestQuestionsMap.get(existingQuestion.getId());
                 existingQuestion.setText(questionRequest.text());
                 existingQuestion.setType(QuestionType.fromValue(questionRequest.type()));
-                updateQuestionOptions(existingQuestion, questionRequest);
+                existingQuestion.setIsCorrect(questionRequest.isCorrect());
+                updateOptions(existingQuestion, questionRequest);
                 requestQuestionsMap.remove(existingQuestion.getId());
             } else {
                 existingQuestionsIterator.remove();
             }
         }
+
+        addNewQuestionsToExistingSurvey(existingSurvey, requestQuestionsMap);
     }
 
-    private void updateQuestionOptions(Question existingQuestion, QuestionRequestDTO questionRequest) {
+    private void addNewQuestionsToExistingSurvey(Survey existingSurvey, Map<Long, QuestionRequestDTO> remainingQuestions) {
+        remainingQuestions.values().forEach(questionRequest -> {
+            Question newQuestion = questionMapper.toEntity(questionRequest);
+            newQuestion.setSurvey(existingSurvey);
+            existingSurvey.getQuestions().add(newQuestion);
+        });
+    }
+
+    private void updateOptions(Question existingQuestion, QuestionRequestDTO questionRequest) {
         Map<Long, QuestionOptionRequestDTO> requestOptionsMap = questionRequest.options().stream()
                 .collect(Collectors.toMap(QuestionOptionRequestDTO::id, o -> o));
 
@@ -232,27 +242,21 @@ public class SurveyService {
             if (requestOptionsMap.containsKey(existingOption.getId())) {
                 QuestionOptionRequestDTO optionRequest = requestOptionsMap.get(existingOption.getId());
                 existingOption.setText(optionRequest.text());
+                existingOption.setIsCorrect(optionRequest.isCorrect());
                 requestOptionsMap.remove(existingOption.getId());
             } else {
                 existingOptionsIterator.remove();
             }
         }
 
-        requestOptionsMap.values().forEach(optionRequest -> {
+        addNewOptionsToExistingQuestion(existingQuestion, requestOptionsMap);
+    }
+
+    private void addNewOptionsToExistingQuestion(Question existingQuestion, Map<Long, QuestionOptionRequestDTO> remainingOptions) {
+        remainingOptions.values().forEach(optionRequest -> {
             QuestionOption newOption = questionOptionMapper.toEntity(optionRequest);
             newOption.setQuestion(existingQuestion);
             existingQuestion.getOptions().add(newOption);
-        });
-    }
-
-    private void addNewQuestions(Survey existingSurvey, SurveyRequestDTO surveyRequest) {
-        Map<Long, QuestionRequestDTO> requestQuestionsMap = surveyRequest.questions().stream()
-                .collect(Collectors.toMap(QuestionRequestDTO::id, q -> q));
-
-        requestQuestionsMap.values().forEach(questionRequest -> {
-            Question newQuestion = questionMapper.toEntity(questionRequest);
-            newQuestion.setSurvey(existingSurvey);
-            existingSurvey.getQuestions().add(newQuestion);
         });
     }
 
