@@ -233,6 +233,7 @@ public class SurveyService {
 
     private void updateOptions(Question existingQuestion, QuestionRequestDTO questionRequest) {
         Map<Long, QuestionOptionRequestDTO> requestOptionsMap = questionRequest.options().stream()
+                .filter(option -> option.id() != null)
                 .collect(Collectors.toMap(QuestionOptionRequestDTO::id, o -> o));
 
         Iterator<QuestionOption> existingOptionsIterator = existingQuestion.getOptions().iterator();
@@ -249,15 +250,17 @@ public class SurveyService {
             }
         }
 
-        addNewOptionsToExistingQuestion(existingQuestion, requestOptionsMap);
+        addNewOptionsToExistingQuestion(existingQuestion, questionRequest);
     }
 
-    private void addNewOptionsToExistingQuestion(Question existingQuestion, Map<Long, QuestionOptionRequestDTO> remainingOptions) {
-        remainingOptions.values().forEach(optionRequest -> {
-            QuestionOption newOption = questionOptionMapper.toEntity(optionRequest);
-            newOption.setQuestion(existingQuestion);
-            existingQuestion.getOptions().add(newOption);
-        });
+    private void addNewOptionsToExistingQuestion(Question existingQuestion, QuestionRequestDTO questionRequest) {
+        questionRequest.options().stream()
+                .filter(option -> option.id() == null)
+                .forEach(optionRequest -> {
+                    QuestionOption newOption = questionOptionMapper.toEntity(optionRequest);
+                    newOption.setQuestion(existingQuestion);
+                    existingQuestion.getOptions().add(newOption);
+                });
     }
 
     public void deleteById(Long id) {
