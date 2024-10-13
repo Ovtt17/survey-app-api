@@ -17,6 +17,8 @@ public class QuestionOption {
 
     @Column(nullable = false)
     private String text;
+
+    @Column(columnDefinition = "boolean default false")
     private Boolean isCorrect;
 
     @ManyToOne

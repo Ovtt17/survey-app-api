@@ -10,6 +10,7 @@ public record SurveySubmissionResponse(
         String title,
         String description,
         UserResponse creator,
+        String pictureUrl,
         List<QuestionResponse> questions,
         Double averageRating,
         Long ratingCount

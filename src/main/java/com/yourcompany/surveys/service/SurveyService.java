@@ -3,12 +3,12 @@ package com.yourcompany.surveys.service;
 import com.yourcompany.surveys.dto.participation.ParticipationResponse;
 import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
-import com.yourcompany.surveys.dto.survey.SurveyPagedResponse;
-import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
-import com.yourcompany.surveys.dto.survey.SurveyResponse;
-import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
+import com.yourcompany.surveys.dto.survey.*;
 import com.yourcompany.surveys.entity.*;
+import com.yourcompany.surveys.handler.exception.ImageDeletionException;
+import com.yourcompany.surveys.handler.exception.ImageNoContentException;
 import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
+import com.yourcompany.surveys.handler.exception.UnauthorizedException;
 import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;
 import com.yourcompany.surveys.mapper.QuestionOptionMapper;
@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.*;
@@ -36,6 +37,7 @@ public class SurveyService {
     private final ParticipationMapper participationMapper;
     private final QuestionOptionMapper questionOptionMapper;
     private final UserService userService;
+    private final SurveyImageService surveyImageService;
 
     public SurveyPagedResponse getAllSurveys(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -98,21 +100,99 @@ public class SurveyService {
     }
 
     @Transactional
-    public void save(SurveyRequestDTO surveyRequest, Principal principal) {
+    public String save(SurveyRequestDTO surveyRequest, MultipartFile picture, Principal principal) {
         User user = userService.getUserFromPrincipal(principal);
         Survey survey = surveyMapper.toEntity(surveyRequest, user);
-        survey = surveyRepository.save(survey);
-        surveyMapper.toSubmissionResponse(survey);
+        processSurveyPictureIfPresent(picture, survey, user);
+        Survey savedSurvey = surveyRepository.save(survey);
+        return savedSurvey.getTitle();
     }
 
-    public void update(Long id, SurveyRequestDTO surveyRequest) {
-        Survey existingSurvey = surveyRepository.findById(id).orElseThrow(
-                () -> new SurveyNotFoundException("Encuesta no encontrada.")
-        );
+    @Transactional
+    public String updateSurveyPicture(Long surveyId, MultipartFile newPicture, Principal principal) {
+        User user = userService.getUserFromPrincipal(principal);
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + surveyId));
+        validateSurveyOwnership(survey, user);
+        deleteExistingPictureIfPresent(survey);
+        processSurveyPictureIfPresent(newPicture, survey, user);
+        Survey surveyWithPictureModified = surveyRepository.save(survey);
+        return surveyWithPictureModified.getPictureUrl();
+    }
+
+    private void processSurveyPictureIfPresent(MultipartFile newPicture, Survey survey, User user) {
+        if (newPicture != null) {
+            SurveyImageRequest imageRequest = SurveyImageRequest.builder()
+                    .picture(newPicture)
+                    .surveyId(survey.getId())
+                    .username(user.getUsername())
+                    .imageType(ImageType.SURVEY_PICTURE)
+                    .build();
+            uploadAndSetSurveyPicture(imageRequest, survey);
+        }
+    }
+
+    private void uploadAndSetSurveyPicture(SurveyImageRequest imageRequest, Survey survey) {
+        String imageUrl = surveyImageService.uploadSurveyPicture(imageRequest);
+        survey.setPictureUrl(imageUrl);
+    }
+
+    private void deleteExistingPictureIfPresent(Survey survey) {
+        if (survey.getPictureUrl() != null) {
+            deleteExistingPicture(survey.getPictureUrl());
+            survey.setPictureUrl(null);
+        }
+    }
+
+    private void deleteExistingPicture(String pictureUrl) {
+        try {
+            boolean isPictureDeleted = surveyImageService.deleteSurveyPicture(pictureUrl);
+            if (!isPictureDeleted) {
+                throw new ImageDeletionException("Error al eliminar la foto de la encuesta.");
+            }
+        } catch (Exception e) {
+            throw new ImageDeletionException("Error inesperado al eliminar la foto de la encuesta: " + e.getMessage(), e);
+        }
+    }
+
+    public String deleteSurveyPicture(Long surveyId, Principal principal) {
+        User user = userService.getUserFromPrincipal(principal);
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + surveyId));
+        validateSurveyOwnership(survey, user);
+
+        if (survey.getPictureUrl() == null) {
+            throw new ImageNoContentException("La encuesta no tiene foto.");
+        }
+
+        deleteExistingPicture(survey.getPictureUrl());
+        survey.setPictureUrl(null);
+        surveyRepository.save(survey);
+        return "Foto de la encuesta eliminada correctamente de la encuesta ." + surveyId;
+    }
+
+    private void validateSurveyOwnership(Survey survey, User user) {
+        if (!survey.getCreator().equals(user)) {
+            throw new UnauthorizedException("No tienes permiso para actualizar esta encuesta.");
+        }
+    }
+
+    @Transactional
+    public Long update(
+            Long surveyId,
+            SurveyRequestDTO surveyRequest,
+            MultipartFile picture,
+            Principal principal
+    ) {
+        User user = userService.getUserFromPrincipal(principal);
+        Survey existingSurvey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + surveyId));
+        validateSurveyOwnership(existingSurvey, user);
+        processSurveyPictureIfPresent(picture, existingSurvey, user);
         updateSurveyDetails(existingSurvey, surveyRequest);
         updateExistingQuestions(existingSurvey, surveyRequest);
-        addNewQuestions(existingSurvey, surveyRequest);
-        surveyMapper.toSubmissionResponse(surveyRepository.save(existingSurvey));
+        surveyRepository.save(existingSurvey);
+        return existingSurvey.getId();
     }
 
     private void updateSurveyDetails(Survey existingSurvey, SurveyRequestDTO surveyRequest) {
@@ -132,16 +212,28 @@ public class SurveyService {
                 QuestionRequestDTO questionRequest = requestQuestionsMap.get(existingQuestion.getId());
                 existingQuestion.setText(questionRequest.text());
                 existingQuestion.setType(QuestionType.fromValue(questionRequest.type()));
-                updateQuestionOptions(existingQuestion, questionRequest);
+                existingQuestion.setIsCorrect(questionRequest.isCorrect());
+                updateOptions(existingQuestion, questionRequest);
                 requestQuestionsMap.remove(existingQuestion.getId());
             } else {
                 existingQuestionsIterator.remove();
             }
         }
+
+        addNewQuestionsToExistingSurvey(existingSurvey, requestQuestionsMap);
     }
 
-    private void updateQuestionOptions(Question existingQuestion, QuestionRequestDTO questionRequest) {
+    private void addNewQuestionsToExistingSurvey(Survey existingSurvey, Map<Long, QuestionRequestDTO> remainingQuestions) {
+        remainingQuestions.values().forEach(questionRequest -> {
+            Question newQuestion = questionMapper.toEntity(questionRequest);
+            newQuestion.setSurvey(existingSurvey);
+            existingSurvey.getQuestions().add(newQuestion);
+        });
+    }
+
+    private void updateOptions(Question existingQuestion, QuestionRequestDTO questionRequest) {
         Map<Long, QuestionOptionRequestDTO> requestOptionsMap = questionRequest.options().stream()
+                .filter(option -> option.id() != null)
                 .collect(Collectors.toMap(QuestionOptionRequestDTO::id, o -> o));
 
         Iterator<QuestionOption> existingOptionsIterator = existingQuestion.getOptions().iterator();
@@ -151,28 +243,24 @@ public class SurveyService {
             if (requestOptionsMap.containsKey(existingOption.getId())) {
                 QuestionOptionRequestDTO optionRequest = requestOptionsMap.get(existingOption.getId());
                 existingOption.setText(optionRequest.text());
+                existingOption.setIsCorrect(optionRequest.isCorrect());
                 requestOptionsMap.remove(existingOption.getId());
             } else {
                 existingOptionsIterator.remove();
             }
         }
 
-        requestOptionsMap.values().forEach(optionRequest -> {
-            QuestionOption newOption = questionOptionMapper.toEntity(optionRequest);
-            newOption.setQuestion(existingQuestion);
-            existingQuestion.getOptions().add(newOption);
-        });
+        addNewOptionsToExistingQuestion(existingQuestion, questionRequest);
     }
 
-    private void addNewQuestions(Survey existingSurvey, SurveyRequestDTO surveyRequest) {
-        Map<Long, QuestionRequestDTO> requestQuestionsMap = surveyRequest.questions().stream()
-                .collect(Collectors.toMap(QuestionRequestDTO::id, q -> q));
-
-        requestQuestionsMap.values().forEach(questionRequest -> {
-            Question newQuestion = questionMapper.toEntity(questionRequest);
-            newQuestion.setSurvey(existingSurvey);
-            existingSurvey.getQuestions().add(newQuestion);
-        });
+    private void addNewOptionsToExistingQuestion(Question existingQuestion, QuestionRequestDTO questionRequest) {
+        questionRequest.options().stream()
+                .filter(option -> option.id() == null)
+                .forEach(optionRequest -> {
+                    QuestionOption newOption = questionOptionMapper.toEntity(optionRequest);
+                    newOption.setQuestion(existingQuestion);
+                    existingQuestion.getOptions().add(newOption);
+                });
     }
 
     public void deleteById(Long id) {
@@ -185,4 +273,5 @@ public class SurveyService {
                 .map(participationMapper::toResponse)
                 .toList();
     }
+
 }

@@ -2,6 +2,7 @@ package com.yourcompany.surveys.handler;
 
 import com.yourcompany.surveys.handler.exception.*;
 import jakarta.mail.MessagingException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -53,7 +54,7 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(BAD_CREDENTIALS.getCode())
                                 .businessErrorDescription(BAD_CREDENTIALS.getDescription())
-                                .error(BAD_CREDENTIALS.getDescription())
+                                .error(e.getMessage())
                                 .build()
                 );
     }
@@ -107,7 +108,7 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(SURVEY_NOT_FOUND.getCode())
                                 .businessErrorDescription(SURVEY_NOT_FOUND.getDescription())
-                                .error(SURVEY_NOT_FOUND.getDescription())
+                                .error(e.getMessage())
                                 .build()
                 );
     }
@@ -159,6 +160,19 @@ public class GlobalExceptionHandler {
                         ExceptionResponse.builder()
                                 .businessErrorCode(IMAGE_NO_CONTENT.getCode())
                                 .businessErrorDescription(IMAGE_NO_CONTENT.getDescription())
+                                .error(e.getMessage())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ExceptionResponse> handleUnauthorizedException(UnauthorizedException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(BusinessErrorCodes.USER_UNAUTHORIZED.getCode())
+                                .businessErrorDescription(BusinessErrorCodes.USER_UNAUTHORIZED.getDescription())
                                 .error(e.getMessage())
                                 .build()
                 );

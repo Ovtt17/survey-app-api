@@ -3,6 +3,7 @@ package com.yourcompany.surveys.dto.survey;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 

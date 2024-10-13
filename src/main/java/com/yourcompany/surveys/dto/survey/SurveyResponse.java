@@ -8,6 +8,7 @@ public record SurveyResponse (
         String creatorUsername,
         String creatorProfilePicture,
         Double averageRating,
-        Long ratingCount
+        Long ratingCount,
+        String pictureUrl
 ) {
 }

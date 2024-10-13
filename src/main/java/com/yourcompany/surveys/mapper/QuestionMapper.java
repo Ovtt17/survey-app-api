@@ -21,6 +21,7 @@ public class QuestionMapper {
                 question.getId(),
                 question.getText(),
                 question.getType().getValue(),
+                question.getIsCorrect(),
                 question.getOptions().stream()
                         .map(questionOptionMapper::toResponse)
                         .collect(Collectors.toList())
@@ -32,6 +33,7 @@ public class QuestionMapper {
                 .id(questionRequest.id())
                 .text(questionRequest.text())
                 .type(QuestionType.fromValue(questionRequest.type()))
+                .isCorrect(questionRequest.isCorrect())
                 .build();
 
         question.setOptions(questionRequest.options().stream()
