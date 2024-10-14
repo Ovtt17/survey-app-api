@@ -13,7 +13,7 @@ public enum BusinessErrorCodes {
     ACCOUNT_LOCKED (302, FORBIDDEN, "La cuenta de usuario se encuentra bloqueada"),
     ACCOUNT_DISABLED (303, FORBIDDEN, "La cuenta de usuario se encuentra deshabilitada"),
     BAD_CREDENTIALS (304, FORBIDDEN, "La combinación de usuario y contraseña es incorrecta"),
-    SURVEY_NOT_FOUND (305, NOT_FOUND, "Encuesta no encontrada o no eres el creador"),
+    SURVEY_NOT_FOUND (305, NOT_FOUND, "Encuesta no encontrada"),
     USER_NOT_FOUND (306, NOT_FOUND, "Usuario no encontrado"),
     IMAGE_DELETION_ERROR (307, INTERNAL_SERVER_ERROR, "Error al eliminar la imagen"),
     IMAGE_UPLOAD_ERROR (308, INTERNAL_SERVER_ERROR, "Error al subir la imagen"),
@@ -22,7 +22,7 @@ public enum BusinessErrorCodes {
     IMAGE_SIZE_EXCEEDED (309, BAD_REQUEST, "El tamaño de la imagen excede el límite permitido"),
     INVALID_IMAGE_URL (310, BAD_REQUEST, "URL de imagen inválida"),
     INVALID_IMAGE_FORMAT (311, BAD_REQUEST, "Formato de imagen inválido"),
-    USER_UNAUTHORIZED(403, UNAUTHORIZED, "No tienes permiso para realizar esta acción");
+    USER_UNAUTHORIZED(401, UNAUTHORIZED, "No tienes permiso para realizar esta acción");
 
     private final int code;
     private final String description;

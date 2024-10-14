@@ -168,7 +168,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ExceptionResponse> handleUnauthorizedException(UnauthorizedException e) {
         return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
+                .status(HttpStatus.UNAUTHORIZED)
                 .body(
                         ExceptionResponse.builder()
                                 .businessErrorCode(BusinessErrorCodes.USER_UNAUTHORIZED.getCode())
