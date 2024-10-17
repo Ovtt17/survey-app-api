@@ -265,6 +265,9 @@ public class SurveyService {
     }
 
     public void deleteById(Long id) {
+        Survey survey = surveyRepository.findById(id)
+                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + id));
+        deleteExistingPictureIfPresent(survey);
         surveyRepository.deleteById(id);
     }
 
