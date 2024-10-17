@@ -76,7 +76,7 @@ public class SurveyController {
     @PostMapping
     public ResponseEntity<String> createSurvey(
             @RequestPart @Valid SurveyRequestDTO surveyRequest,
-            @RequestPart(required = false) MultipartFile picture,
+            @RequestPart(value = "picture", required = false) MultipartFile picture,
             Principal principal
     ) {
         String surveyTitle = surveyService.save(surveyRequest, picture, principal);
