@@ -64,6 +64,7 @@ public class SurveyMapper {
                 .id(surveyRequest.id())
                 .title(surveyRequest.title())
                 .description(surveyRequest.description())
+                .pictureUrl(surveyRequest.pictureUrl())
                 .creator(user)
                 .build();
 

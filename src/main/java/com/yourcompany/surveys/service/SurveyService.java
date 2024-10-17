@@ -188,6 +188,7 @@ public class SurveyService {
         Survey existingSurvey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + surveyId));
         validateSurveyOwnership(existingSurvey, user);
+        deleteExistingPictureIfPresent(existingSurvey);
         processSurveyPictureIfPresent(picture, existingSurvey, user);
         updateSurveyDetails(existingSurvey, surveyRequest);
         updateExistingQuestions(existingSurvey, surveyRequest);
