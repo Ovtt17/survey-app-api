@@ -11,6 +11,7 @@ public class ParticipationMapper {
                 participation.getId(),
                 participation.getUser().getId(),
                 participation.getUser().getName(),
+                participation.getUser().getProfilePictureUrl(),
                 participation.getSurvey().getId(),
                 participation.getSurvey().getTitle(),
                 participation.getParticipatedDate()
