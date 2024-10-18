@@ -31,7 +31,8 @@ public class SurveyMapper {
                         .map(questionMapper::toResponse)
                         .collect(Collectors.toList()),
                 survey.getAverageRating(),
-                survey.getRatingCount()
+                survey.getRatingCount(),
+                survey.getCreationDate()
         );
     }
 
