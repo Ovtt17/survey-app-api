@@ -11,7 +11,8 @@ public record ReviewResponse (
         Long surveyId,
         String surveyTitle,
         RatingResponse rating,
-        String author,
+        String authorUsername,
+        String authorPicture,
         LocalDateTime createdDate
 ) {
 }

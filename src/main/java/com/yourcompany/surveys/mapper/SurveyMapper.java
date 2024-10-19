@@ -31,7 +31,8 @@ public class SurveyMapper {
                         .map(questionMapper::toResponse)
                         .collect(Collectors.toList()),
                 survey.getAverageRating(),
-                survey.getRatingCount()
+                survey.getRatingCount(),
+                survey.getCreationDate()
         );
     }
 
@@ -64,6 +65,7 @@ public class SurveyMapper {
                 .id(surveyRequest.id())
                 .title(surveyRequest.title())
                 .description(surveyRequest.description())
+                .pictureUrl(surveyRequest.pictureUrl())
                 .creator(user)
                 .build();
 

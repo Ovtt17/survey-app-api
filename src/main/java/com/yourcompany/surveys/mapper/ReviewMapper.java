@@ -50,6 +50,7 @@ public class ReviewMapper {
                 review.getSurvey().getTitle(),
                 ratingMapper.toResponse(review.getRating()),
                 review.getUser().getName(),
+                review.getUser().getProfilePictureUrl(),
                 review.getCreatedDate()
         );
     }

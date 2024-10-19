@@ -13,11 +13,6 @@ public record AnswerRequestDTO(
         Long questionId,
 
         @NotBlank(message = "La respuesta es obligatorio")
-        String answerText,
-
-        @NotBlank(message = "La calificación es obligatorio")
-        @DecimalMin(value = "0.0", message = "La calificación debe ser mayor o igual a 0")
-        @DecimalMax(value = "5.0", message = "La calificación debe ser menor o igual a 5")
-        Double rating
+        String answerText
 ) {
 }

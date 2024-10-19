@@ -64,6 +64,7 @@ public class ImageService {
 
     public String uploadImage(MultipartFile image, String imageName) {
         try {
+            validateImageType(image);
             validateImageSize(image);
             HttpHeaders headers = createHeaders();
             MultiValueMap<String, Object> body = createRequestBody(image, imageName);
@@ -78,6 +79,14 @@ public class ImageService {
             throw e;
         } catch (Exception e) {
             throw new ImageUploadException("Error inesperado: " + e.getMessage(), e);
+        }
+    }
+
+    private void validateImageType(MultipartFile image) {
+        String contentType = image.getContentType();
+        if (contentType == null ||
+                !(contentType.equals("image/jpeg") || contentType.equals("image/png") || contentType.equals("image/webp"))) {
+            throw new ImageUploadException("El tipo de archivo no es válido. Solo se permiten archivos JPG, JPEG, PNG y WEBP.");
         }
     }
 
