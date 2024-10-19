@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.yourcompany.surveys</groupId>
 	<artifactId>survey-app</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>survey-app</name>
 	<description>A Spring-based application for managing and conducting surveys</description>
 	<url/>
