@@ -20,9 +20,9 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
-    public ResponseEntity<Void> createReview(@RequestBody @Valid ReviewRequestDTO reviewRequest, Principal principal) {
-        reviewService.createReview(reviewRequest, principal);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ReviewResponse> createReview(@RequestBody @Valid ReviewRequestDTO reviewRequest, Principal principal) {
+        ReviewResponse reviewSaved = reviewService.createReview(reviewRequest, principal);
+        return ResponseEntity.ok(reviewSaved);
     }
 
     @GetMapping("/{id}")

@@ -27,7 +27,7 @@ public class ReviewService {
     private final RatingMapper ratingMapper;
 
     @Transactional
-    public void createReview(ReviewRequestDTO reviewRequest, Principal principal) {
+    public ReviewResponse createReview(ReviewRequestDTO reviewRequest, Principal principal) {
         String email = principal.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -38,7 +38,7 @@ public class ReviewService {
                 principal
         );
         review.setRating(ratingUpdated);
-        reviewRepository.save(review);
+        return reviewMapper.toResponse(reviewRepository.save(review));
     }
 
     public List<ReviewResponse> getReviewsBySurveyId (@PathVariable Long id) {
