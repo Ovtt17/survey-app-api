@@ -1,7 +1,5 @@
 package com.yourcompany.surveys.dto.answer;
 
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 
 public record AnswerRequestDTO(
