@@ -42,6 +42,9 @@ public class SurveyService {
     public SurveyPagedResponse getAllSurveys(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Survey> surveys = surveyRepository.findAll(pageable);
+        if (surveys.isEmpty()) {
+            throw new SurveyNotFoundException("Actualmente no hay encuestas disponibles. ¡Crea una nueva encuesta para empezar!");
+        }
         return surveyMapper.toPagedResponse(surveys);
     }
 
