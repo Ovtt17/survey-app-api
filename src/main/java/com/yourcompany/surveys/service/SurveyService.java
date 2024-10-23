@@ -42,6 +42,9 @@ public class SurveyService {
     public SurveyPagedResponse getAllSurveys(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Survey> surveys = surveyRepository.findAll(pageable);
+        if (surveys.isEmpty()) {
+            throw new SurveyNotFoundException("Actualmente no hay encuestas disponibles. ¡Crea una nueva encuesta para empezar!");
+        }
         return surveyMapper.toPagedResponse(surveys);
     }
 
@@ -138,8 +141,9 @@ public class SurveyService {
     }
 
     private void deleteExistingPictureIfPresent(Survey survey) {
-        if (survey.getPictureUrl() != null) {
-            deleteExistingPicture(survey.getPictureUrl());
+        String pictureUrl = survey.getPictureUrl();
+        if (pictureUrl != null && !pictureUrl.isEmpty()) {
+            deleteExistingPicture(pictureUrl);
             survey.setPictureUrl(null);
         }
     }
@@ -161,7 +165,8 @@ public class SurveyService {
                 .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + surveyId));
         validateSurveyOwnership(survey, user);
 
-        if (survey.getPictureUrl() == null) {
+        String pictureUrl = survey.getPictureUrl();
+        if (pictureUrl != null && !pictureUrl.isEmpty()) {
             throw new ImageNoContentException("La encuesta no tiene foto.");
         }
 
