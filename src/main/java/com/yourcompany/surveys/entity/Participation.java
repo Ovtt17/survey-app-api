@@ -29,7 +29,7 @@ public class Participation {
     @JoinColumn(name = "survey_id", nullable = false)
     private Survey survey;
 
-    @OneToMany(mappedBy = "participation")
+    @OneToMany(mappedBy = "participation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Answer> answers;
 
     @CreatedDate
