@@ -28,7 +28,7 @@ public class Review {
     private String content;
 
     @ManyToOne
-    @JoinColumn(name = "rating_id", nullable = false)
+    @JoinColumn(name = "rating_id")
     private Rating rating;
 
     @ManyToOne
