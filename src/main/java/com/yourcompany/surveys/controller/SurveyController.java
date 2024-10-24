@@ -29,7 +29,11 @@ public class SurveyController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size
     ) {
-        return ResponseEntity.ok(surveyService.getAllSurveys(page, size));
+        SurveyPagedResponse response = surveyService.getAllSurveys(page, size);
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
@@ -61,7 +65,11 @@ public class SurveyController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "6") int size
     ) {
-        return ResponseEntity.ok(surveyService.getByUserWithPaging(principal, page, size));
+        SurveyPagedResponse response = surveyService.getByUserWithPaging(principal, page, size);
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/user/{username}/paged")
@@ -70,7 +78,11 @@ public class SurveyController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size
     ) {
-        return ResponseEntity.ok(surveyService.getByUsernameWithPaging(username, page, size));
+        SurveyPagedResponse response = surveyService.getByUsernameWithPaging(username, page, size);
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
