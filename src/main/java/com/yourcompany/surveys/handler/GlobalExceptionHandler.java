@@ -100,6 +100,19 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ExceptionHandler(SurveyNoContentException.class)
+    public ResponseEntity<ExceptionResponse> handleSurveyNoContentException(SurveyNoContentException e) {
+        return ResponseEntity
+                .status(BusinessErrorCodes.SURVEY_NO_CONTENT.getHttpStatus())
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(BusinessErrorCodes.SURVEY_NO_CONTENT.getCode())
+                                .businessErrorDescription(BusinessErrorCodes.SURVEY_NO_CONTENT.getDescription())
+                                .error(e.getMessage())
+                                .build()
+                );
+    }
+
     @ExceptionHandler(SurveyNotFoundException.class)
     public ResponseEntity<ExceptionResponse> handleSurveyNotFoundException (SurveyNotFoundException e) {
         return ResponseEntity
