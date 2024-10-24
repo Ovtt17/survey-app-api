@@ -22,9 +22,8 @@ public enum BusinessErrorCodes {
     IMAGE_SIZE_EXCEEDED (309, BAD_REQUEST, "El tamaño de la imagen excede el límite permitido"),
     INVALID_IMAGE_URL (310, BAD_REQUEST, "URL de imagen inválida"),
     INVALID_IMAGE_FORMAT (311, BAD_REQUEST, "Formato de imagen inválido"),
-    USER_UNAUTHORIZED(401, UNAUTHORIZED, "No tienes permiso para realizar esta acción"),
-    SURVEY_NO_CONTENT (315, NO_CONTENT, "No hay encuestas");
-
+    USER_UNAUTHORIZED(401, UNAUTHORIZED, "No tienes permiso para realizar esta acción")
+    ;
     private final int code;
     private final String description;
     private final HttpStatus httpStatus;
