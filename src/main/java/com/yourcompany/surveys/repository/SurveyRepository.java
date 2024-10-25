@@ -18,7 +18,6 @@ import java.util.List;
 public interface SurveyRepository extends JpaRepository<Survey, Long> {
     Survey findByIdAndCreator(Long id, User creator);
     List<Survey> findByCreator(User creator);
-    Page<Survey> findByCreator(User creator, Pageable pageable);
     Page<Survey> findByCreatorUsername(String username, Pageable pageable);
     Page<Survey> findAll(Pageable pageable);
 

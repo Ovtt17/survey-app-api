@@ -5,10 +5,7 @@ import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.survey.*;
 import com.yourcompany.surveys.entity.*;
-import com.yourcompany.surveys.handler.exception.ImageDeletionException;
-import com.yourcompany.surveys.handler.exception.ImageNoContentException;
-import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
-import com.yourcompany.surveys.handler.exception.UnauthorizedException;
+import com.yourcompany.surveys.handler.exception.*;
 import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;
 import com.yourcompany.surveys.mapper.QuestionOptionMapper;
@@ -43,7 +40,7 @@ public class SurveyService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Survey> surveys = surveyRepository.findAll(pageable);
         if (surveys.isEmpty()) {
-            throw new SurveyNotFoundException("Actualmente no hay encuestas disponibles. ¡Crea una nueva encuesta para empezar!");
+            return null;
         }
         return surveyMapper.toPagedResponse(surveys);
     }
@@ -51,7 +48,7 @@ public class SurveyService {
     public SurveyResponse findById(Long id) {
         Optional<Survey> survey = surveyRepository.findById(id);
         if (survey.isEmpty()) {
-            throw new SurveyNotFoundException("Encuesta no encontrada.");
+            throw new SurveyNotFoundException("No se encontró la encuesta.");
         }
         return surveyMapper.toResponse(survey.get());
     }
@@ -59,7 +56,7 @@ public class SurveyService {
     public SurveySubmissionResponse findByIdForSubmission(Long id) {
         Optional<Survey> survey = surveyRepository.findById(id);
         if (survey.isEmpty()) {
-            throw new SurveyNotFoundException("Encuesta no encontrada.");
+            throw new SurveyNotFoundException("No se encontró la encuesta.");
         }
         return surveyMapper.toSubmissionResponse(survey.get());
     }
@@ -68,7 +65,7 @@ public class SurveyService {
         User user = userService.getUserFromPrincipal(principal);
         Survey survey = surveyRepository.findByIdAndCreator(id, user);
         if (survey == null) {
-            throw new SurveyNotFoundException("Encuesta no encontrada.");
+            throw new SurveyNotFoundException("No se encontró la encuesta.");
         }
         return surveyMapper.toSubmissionResponse(survey);
     }
@@ -81,17 +78,6 @@ public class SurveyService {
                 .toList();
     }
 
-    public SurveyPagedResponse getByUserWithPaging(
-            Principal principal,
-            int page,
-            int size
-    ) {
-        User user = userService.getUserFromPrincipal(principal);
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Survey> surveys = surveyRepository.findByCreator(user, pageable);
-        return surveyMapper.toPagedResponse(surveys);
-    }
-
     public SurveyPagedResponse getByUsernameWithPaging(
             String username,
             int page,
@@ -99,6 +85,9 @@ public class SurveyService {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Survey> surveys = surveyRepository.findByCreatorUsername(username, pageable);
+        if (surveys.isEmpty()) {
+            return null;
+        }
         return surveyMapper.toPagedResponse(surveys);
     }
 
