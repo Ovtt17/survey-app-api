@@ -59,19 +59,6 @@ public class SurveyController {
         return ResponseEntity.ok(surveyService.getByUserForReport(principal));
     }
 
-    @GetMapping("/user/paged")
-    public ResponseEntity<SurveyPagedResponse> getSurveysByUserWithPaging(
-            Principal principal,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size
-    ) {
-        SurveyPagedResponse response = surveyService.getByUserWithPaging(principal, page, size);
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(response);
-    }
-
     @GetMapping("/user/{username}/paged")
     public ResponseEntity<SurveyPagedResponse> getSurveysByUsernameWithPaging(
             @PathVariable String username,

@@ -78,20 +78,6 @@ public class SurveyService {
                 .toList();
     }
 
-    public SurveyPagedResponse getByUserWithPaging(
-            Principal principal,
-            int page,
-            int size
-    ) {
-        User user = userService.getUserFromPrincipal(principal);
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Survey> surveys = surveyRepository.findByCreator(user, pageable);
-        if (surveys.isEmpty()) {
-            return null;
-        }
-        return surveyMapper.toPagedResponse(surveys);
-    }
-
     public SurveyPagedResponse getByUsernameWithPaging(
             String username,
             int page,
