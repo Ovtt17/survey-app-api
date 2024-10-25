@@ -87,7 +87,7 @@ public class SurveyService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Survey> surveys = surveyRepository.findByCreator(user, pageable);
         if (surveys.isEmpty()) {
-            throw new SurveyNotFoundException("No hay encuestas creadas por ti. ¡Crea una nueva encuesta para empezar!");
+            return null;
         }
         return surveyMapper.toPagedResponse(surveys);
     }
@@ -100,7 +100,7 @@ public class SurveyService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Survey> surveys = surveyRepository.findByCreatorUsername(username, pageable);
         if (surveys.isEmpty()) {
-            throw new SurveyNotFoundException("No hay encuestas creadas por " + username + ".");
+            return null;
         }
         return surveyMapper.toPagedResponse(surveys);
     }
