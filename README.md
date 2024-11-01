@@ -13,7 +13,7 @@ This project is a survey application built with Spring Boot and Maven.
 ### Step 1: Clone the repository
 
 ```bash
-git clone https://github.com/Ovtt17/survey-app.git
+git clone https://github.com/Ovtt17/survey-app-backend.git
 cd survey-app
 ```
 
