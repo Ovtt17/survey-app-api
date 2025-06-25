@@ -3,12 +3,12 @@ package com.yourcompany.surveys.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -21,18 +21,32 @@ import java.util.List;
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column (unique = true)
+    private Integer id;
+
+    @Column (unique = true, nullable = false)
     private String name;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "role_permissions",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<Permission> permissions;
 
     @ManyToMany (mappedBy = "roles")
     @JsonIgnore
     private List<User> users;
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdDate;
-    @LastModifiedDate
-    @Column (insertable = false)
-    private LocalDateTime lastModifiedDate;
+    public List<SimpleGrantedAuthority> getAuthorities() {
+        var authorities = new ArrayList<>(getPermissions()
+                .stream()
+                .map(permission -> new SimpleGrantedAuthority(permission.getName()))
+                .toList());
+
+        authorities.add(
+                new SimpleGrantedAuthority("ROLE_" + this.name.toUpperCase())
+        );
+        return authorities;
+    }
 }

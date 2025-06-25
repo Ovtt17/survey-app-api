@@ -8,7 +8,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.security.Principal;
@@ -16,7 +15,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -34,13 +32,11 @@ public class User implements UserDetails, Principal {
     @Column(nullable = false)
     private String firstName;
 
-    @Column(nullable = false)
     private String lastName;
 
     @Column (unique = true)
     private String profilePictureUrl;
 
-    @Column(nullable = false)
     private LocalDate dateOfBirth;
 
     @Column(unique = true, nullable = false)
@@ -49,11 +45,13 @@ public class User implements UserDetails, Principal {
     @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
     private Integer phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AuthProvider provider;
 
     private boolean accountLocked;
     private boolean enabled;
@@ -97,13 +95,11 @@ public class User implements UserDetails, Principal {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.roles
-                .stream()
-                .map(r -> new SimpleGrantedAuthority(r.getName())
-                )
-                .collect(Collectors.toList());
+        return roles.stream()
+                .map(Role::getAuthorities)
+                .flatMap(Collection::stream)
+                .toList();
     }
-
     @Override
     public String getPassword() {
         return password;

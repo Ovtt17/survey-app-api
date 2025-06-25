@@ -3,10 +3,7 @@ package com.yourcompany.surveys.service;
 import com.yourcompany.surveys.dto.user.AuthenticationRequest;
 import com.yourcompany.surveys.dto.user.AuthenticationResponse;
 import com.yourcompany.surveys.dto.user.RegistrationRequest;
-import com.yourcompany.surveys.entity.EmailTemplateName;
-import com.yourcompany.surveys.entity.ImageType;
-import com.yourcompany.surveys.entity.Token;
-import com.yourcompany.surveys.entity.User;
+import com.yourcompany.surveys.entity.*;
 import com.yourcompany.surveys.mapper.UserMapper;
 import com.yourcompany.surveys.repository.RoleRepository;
 import com.yourcompany.surveys.repository.TokenRepository;
@@ -46,8 +43,9 @@ public class AuthenticationService {
 
     @Transactional
     public Boolean register(RegistrationRequest request) throws MessagingException {
-        var userRole = roleRepository.findByName("USER")
-                .orElseThrow(() -> new IllegalStateException("ROL 'USER' no encontrado"));
+        var userRole = roleRepository.findByName(Roles.USER.name())
+                .orElseThrow(() -> new IllegalStateException("ROL " + Roles.USER.name() + " no encontrado"));
+
         var user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
