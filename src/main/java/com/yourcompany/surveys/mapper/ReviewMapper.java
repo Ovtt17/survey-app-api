@@ -5,7 +5,6 @@ import com.yourcompany.surveys.dto.review.ReviewResponse;
 import com.yourcompany.surveys.entity.Rating;
 import com.yourcompany.surveys.entity.Review;
 import com.yourcompany.surveys.entity.Survey;
-import com.yourcompany.surveys.entity.User;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,7 +15,7 @@ public class ReviewMapper {
         this.ratingMapper = ratingMapper;
     }
 
-    public Review toEntity (ReviewRequestDTO reviewRequest, User user) {
+    public Review toEntity(ReviewRequestDTO reviewRequest) {
         return Review.builder()
                 .id(reviewRequest.id())
                 .title(reviewRequest.title())
@@ -37,7 +36,6 @@ public class ReviewMapper {
                                 )
                                 .build()
                 )
-                .user(user)
                 .build();
     }
 
@@ -49,8 +47,8 @@ public class ReviewMapper {
                 review.getSurvey().getId(),
                 review.getSurvey().getTitle(),
                 ratingMapper.toResponse(review.getRating()),
-                review.getUser().getName(),
-                review.getUser().getProfilePictureUrl(),
+                review.getCreatedBy().getName(),
+                review.getCreatedBy().getProfilePictureUrl(),
                 review.getCreatedDate()
         );
     }
