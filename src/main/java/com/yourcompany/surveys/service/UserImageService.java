@@ -1,7 +1,7 @@
 package com.yourcompany.surveys.service;
 
 import com.yourcompany.surveys.dto.user.UserResponse;
-import com.yourcompany.surveys.entity.ImageType;
+import com.yourcompany.surveys.enums.ImageType;
 import com.yourcompany.surveys.handler.exception.ImageDeletionException;
 import com.yourcompany.surveys.handler.exception.ImageNoContentException;
 import com.yourcompany.surveys.handler.exception.ImageUploadException;

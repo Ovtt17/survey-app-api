@@ -5,6 +5,8 @@ import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.survey.*;
 import com.yourcompany.surveys.entity.*;
+import com.yourcompany.surveys.enums.ImageType;
+import com.yourcompany.surveys.enums.QuestionType;
 import com.yourcompany.surveys.handler.exception.*;
 import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;

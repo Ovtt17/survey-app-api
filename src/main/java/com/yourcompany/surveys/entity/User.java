@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.yourcompany.surveys.enums.AuthProvider;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -75,14 +75,6 @@ public class User implements UserDetails, Principal {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participation> participations;
 
-    @OneToMany(
-            mappedBy = "user",
-            cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY
-    )
-    @JsonManagedReference
-    private List<Address> address;
-
     @ManyToMany(
             fetch = FetchType.EAGER
     )
@@ -111,18 +103,8 @@ public class User implements UserDetails, Principal {
     }
 
     @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
     public boolean isAccountNonLocked() {
         return !accountLocked;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
     }
 
     @Override

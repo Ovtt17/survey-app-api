@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.controller;
 
-import com.yourcompany.surveys.entity.ImageType;
+import com.yourcompany.surveys.enums.ImageType;
 import com.yourcompany.surveys.service.SurveyService;
 import com.yourcompany.surveys.service.UserImageService;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -1,9 +1,9 @@
 package com.yourcompany.surveys.service;
 
 import com.yourcompany.surveys.dto.user.OAuthUserInfo;
-import com.yourcompany.surveys.entity.AuthProvider;
+import com.yourcompany.surveys.enums.AuthProvider;
 import com.yourcompany.surveys.entity.CustomOAuth2User;
-import com.yourcompany.surveys.entity.Roles;
+import com.yourcompany.surveys.enums.Roles;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.repository.RoleRepository;
 import com.yourcompany.surveys.repository.UserRepository;
