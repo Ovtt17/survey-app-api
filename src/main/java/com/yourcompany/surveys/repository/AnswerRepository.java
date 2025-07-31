@@ -16,24 +16,24 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
             "q.id, q.text, a.id, a.answerText, u.id, u.username) " +
             "FROM Answer a " +
             "JOIN a.question q " +
-            "JOIN a.user u " +
+            "JOIN a.createdBy u " +
             "JOIN a.survey s " +
             "WHERE s.id = :surveyId " +
-            "AND s.creator.id = :creatorId " +
+            "AND s.createdBy.id = :creatorId " +
             "ORDER BY u.id, q.id "
     )
-    List<SurveyReportResponse> findByAnswerBySurveyIdAndCreatorId(@Param("surveyId") Long surveyId, @Param("creatorId") Long creatorId);
+    List<SurveyReportResponse> findByAnswerBySurveyIdAndCreatedById(@Param("surveyId") Long surveyId, @Param("creatorId") Long creatorId);
 
     @Query("SELECT new com.yourcompany.surveys.dto.report.ResponseTrendReportResponse(" +
             "q.id, q.text, a.answerText, COUNT(a.id)) " +
             "FROM Answer a " +
             "JOIN a.question q " +
             "WHERE a.survey.id = :surveyId " +
-            "AND a.user.id = :userId " +
+            "AND a.createdBy.id = :userId " +
             "GROUP BY q.id, q.text, a.answerText " +
             "ORDER BY q.id, COUNT(a.id) DESC"
     )
     List<ResponseTrendReportResponse> findResponseTrendsBySurveyIdAndUserId(@Param("surveyId") Long surveyId, @Param("userId") Long userId);
 
-    List<Answer> findBySurveyIdAndUserIdAndParticipationId(Long surveyId, Long userId, Long participationId);
+    List<Answer> findBySurveyIdAndCreatedByIdAndParticipationId(Long surveyId, Long userId, Long participationId);
 }
