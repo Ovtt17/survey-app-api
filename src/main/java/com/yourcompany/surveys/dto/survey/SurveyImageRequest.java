@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.dto.survey;
 
-import com.yourcompany.surveys.entity.ImageType;
+import com.yourcompany.surveys.enums.ImageType;
 import lombok.Builder;
 import org.springframework.web.multipart.MultipartFile;
 

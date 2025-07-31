@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface RatingRepository extends JpaRepository<Rating, Long> {
-    Rating findBySurveyIdAndUserId(Long survey_id, Long user_id);
+    Rating findBySurveyIdAndCreatedById(Long survey_id, Long user_id);
 
     @Query("SELECT new com.yourcompany.surveys.dto.rating.RatingGroupResponse(CAST(FLOOR(r.rating) AS long), COUNT(r.id)) " +
             "FROM Rating r " +

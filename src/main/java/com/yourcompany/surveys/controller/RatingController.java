@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -21,8 +20,8 @@ public class RatingController {
     private final RatingService ratingService;
 
     @PostMapping
-    public ResponseEntity<Void> createRating (@RequestBody @Valid RatingRequestDTO ratingRequest, Principal principal) {
-        ratingService.createOrUpdateRating(ratingRequest, principal);
+    public ResponseEntity<Void> createRating (@RequestBody @Valid RatingRequestDTO ratingRequest) {
+        ratingService.createOrUpdateRating(ratingRequest);
         return ResponseEntity.ok().build();
     }
 

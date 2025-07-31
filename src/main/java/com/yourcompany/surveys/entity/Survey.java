@@ -2,22 +2,18 @@ package com.yourcompany.surveys.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "surveys")
-@EntityListeners(AuditingEntityListener.class)
-public class Survey {
+public class Survey extends BaseAuditingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,18 +33,6 @@ public class Survey {
     @Column(nullable = false, insertable = false, columnDefinition = "bigint default 0")
     @Builder.Default
     private Long ratingCount = 0L;
-
-    @ManyToOne
-    @JoinColumn(name = "creator_id", nullable = false)
-    private User creator;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime creationDate;
-
-    @LastModifiedDate
-    @Column(insertable = false)
-    private LocalDateTime lastModifiedDate;
 
     @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true)
     @Column(nullable = false)

@@ -1,7 +1,7 @@
 package com.yourcompany.surveys.config;
 
 import com.yourcompany.surveys.entity.Permission;
-import com.yourcompany.surveys.entity.Permissions;
+import com.yourcompany.surveys.enums.Permissions;
 import com.yourcompany.surveys.entity.Role;
 import com.yourcompany.surveys.repository.PermissionRepository;
 import com.yourcompany.surveys.repository.RoleRepository;
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.yourcompany.surveys.entity.Roles.*;
+import static com.yourcompany.surveys.enums.Roles.*;
 
 
 @Configuration

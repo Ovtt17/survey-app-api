@@ -4,6 +4,10 @@ import com.yourcompany.surveys.dto.user.AuthenticationRequest;
 import com.yourcompany.surveys.dto.user.AuthenticationResponse;
 import com.yourcompany.surveys.dto.user.RegistrationRequest;
 import com.yourcompany.surveys.entity.*;
+import com.yourcompany.surveys.enums.AuthProvider;
+import com.yourcompany.surveys.enums.EmailTemplateName;
+import com.yourcompany.surveys.enums.ImageType;
+import com.yourcompany.surveys.enums.Roles;
 import com.yourcompany.surveys.mapper.UserMapper;
 import com.yourcompany.surveys.repository.RoleRepository;
 import com.yourcompany.surveys.repository.TokenRepository;
@@ -53,6 +57,7 @@ public class AuthenticationService {
                 .phone(request.getPhone())
                 .email(request.getEmail())
                 .username(request.getUsername())
+                .provider(AuthProvider.LOCAL)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .accountLocked(false)
                 .enabled(true)
@@ -60,10 +65,8 @@ public class AuthenticationService {
                 .build();
 
         if (request.getProfilePicture() != null) {
-            String username = user.getName();
             String imageUrl = userImageService.uploadProfilePicture(
                     request.getProfilePicture(),
-                    username,
                     ImageType.PROFILE_PICTURE
             );
             user.setProfilePictureUrl(imageUrl);

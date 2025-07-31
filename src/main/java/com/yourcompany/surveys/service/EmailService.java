@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.service;
 
-import com.yourcompany.surveys.entity.EmailTemplateName;
+import com.yourcompany.surveys.enums.EmailTemplateName;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,20 +34,18 @@ public class AnswerController {
 
     @PostMapping
     public ResponseEntity<Void> createAnswer(
-            @RequestBody List<AnswerRequestDTO> answers,
-            Principal principal
+            @Valid @RequestBody List<AnswerRequestDTO> answers
     ) {
-        answerService.save(answers, principal);
+        answerService.save(answers);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<AnswerResponse> updateAnswer(
             @PathVariable Long id,
-            @RequestBody AnswerRequestDTO answer,
-            Principal principal
+            @Valid @RequestBody AnswerRequestDTO answer
     ) {
-        AnswerResponse updatedAnswer = answerService.update(id, answer, principal);
+        AnswerResponse updatedAnswer = answerService.update(id, answer);
         return new ResponseEntity<>(updatedAnswer, HttpStatus.OK);
     }
 

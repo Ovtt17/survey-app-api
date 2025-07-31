@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.Principal;
-
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -21,10 +19,8 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getUser(
-            Principal principal
-    ) {
-        return ResponseEntity.ok(userService.getUserResponseFromPrincipal(principal));
+    public ResponseEntity<UserResponse> getUser() {
+        return ResponseEntity.ok(userService.getUserResponseFromAuthenticatedUser());
     }
 
     @GetMapping("/{username}")

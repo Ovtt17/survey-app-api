@@ -21,19 +21,22 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ExcelReportService {
     private final AnswerRepository answerRepository;
     private final ParticipationRepository participationRepository;
-    private final UserRepository userRepository;
     private final SurveyRepository surveyRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewMapper reviewMapper;
+    private final UserService userService;
+    private User authenticatedUser;
+
+    private void setAuthenticatedUser() {
+        this.authenticatedUser = userService.getAuthenticatedUser();
+    }
 
     private void createHeaderRow(Sheet sheet, String[] columnNames) {
         Row headerRow = sheet.createRow(0);
@@ -42,25 +45,30 @@ public class ExcelReportService {
         }
     }
 
-    public ResponseEntity<byte[]> generateReport(Long reportId, Optional<Long> surveyId, Principal principal) {
+    public ResponseEntity<byte[]> generateReport(Long reportId, Long surveyId) {
+        setAuthenticatedUser();
         return switch (reportId.intValue()) {
-            case 1 -> generateSurveyAnswersReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
-            case 2 -> generateUserParticipationReport(principal);
-            case 3 -> generateResponseTrendsReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
-            case 4 -> generatePopularSurveysReport(principal);
-            case 5 -> generateParticipationCountOnUserSurveys(principal);
-            case 6 -> generateUserSatisfactionReport(principal);
-            case 7 -> generateUserReviewsReport(surveyId.orElseThrow(() -> new IllegalArgumentException("Survey ID is required")), principal);
+            case 1 -> generateSurveyAnswersReport(surveyId);
+            case 3 -> generateResponseTrendsReport(surveyId);
+            case 7 -> generateUserReviewsReport(surveyId);
             default -> throw new IllegalArgumentException("Invalid report ID");
         };
     }
 
-    public ResponseEntity<byte[]> generateSurveyAnswersReport(Long surveyId, Principal principal) {
+    public ResponseEntity<byte[]> generateReport(Long reportId) {
+        setAuthenticatedUser();
+        return switch (reportId.intValue()) {
+            case 2 -> generateUserParticipationReport();
+            case 4 -> generatePopularSurveysReport();
+            case 5 -> generateParticipationCountOnUserSurveys();
+            case 6 -> generateUserSatisfactionReport();
+            default -> throw new IllegalArgumentException("Invalid report ID");
+        };
+    }
+
+    public ResponseEntity<byte[]> generateSurveyAnswersReport(Long surveyId) {
         try {
-            String email = principal.getName();
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            List<SurveyReportResponse> responses = answerRepository.findByAnswerBySurveyIdAndCreatorId(surveyId, user.getId());
+            List<SurveyReportResponse> responses = answerRepository.findByAnswerBySurveyIdAndCreatedById(surveyId, authenticatedUser.getId());
 
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Informe de Respuestas de Encuesta");
@@ -100,13 +108,9 @@ public class ExcelReportService {
         }
     }
 
-    private ResponseEntity<byte[]> generateUserParticipationReport(Principal principal) {
+    private ResponseEntity<byte[]> generateUserParticipationReport() {
         try {
-            String email = principal.getName();
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            List<ParticipationResponse> responses = participationRepository.findAllUserParticipationsByUserId(user.getId());
+            List<ParticipationResponse> responses = participationRepository.findAllUserParticipationsByUserId(authenticatedUser.getId());
 
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("User Participation Report");
@@ -146,13 +150,11 @@ public class ExcelReportService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
     }
-    private ResponseEntity<byte[]> generateResponseTrendsReport(Long surveyId, Principal principal) {
+    private ResponseEntity<byte[]> generateResponseTrendsReport(Long surveyId) {
         try {
-            String email = principal.getName();
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            List<ResponseTrendReportResponse> responseTrends = answerRepository.findResponseTrendsBySurveyIdAndUserId(surveyId, user.getId());
+            List<ResponseTrendReportResponse> responseTrends = answerRepository.findResponseTrendsBySurveyIdAndUserId(
+                    surveyId, authenticatedUser.getId()
+            );
 
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Response Trends Report");
@@ -192,13 +194,9 @@ public class ExcelReportService {
         }
     }
 
-    private ResponseEntity<byte[]> generatePopularSurveysReport(Principal principal) {
+    private ResponseEntity<byte[]> generatePopularSurveysReport() {
         try {
-            String email = principal.getName();
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            List<PopularSurveyReportResponse> popularSurveys = surveyRepository.findPopularSurveysByUserId(user.getId());
+            List<PopularSurveyReportResponse> popularSurveys = surveyRepository.findPopularSurveysByCreatorId(authenticatedUser.getId());
 
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Informe de Encuestas Populares");
@@ -237,13 +235,10 @@ public class ExcelReportService {
         }
     }
 
-    private ResponseEntity<byte[]> generateParticipationCountOnUserSurveys(Principal principal) {
+    private ResponseEntity<byte[]> generateParticipationCountOnUserSurveys() {
         try {
-            String email = principal.getName();
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            List<UserSurveyParticipationCountResponse> participations = surveyRepository.findParticipationCountByCreatorId(user.getId());
+            List<UserSurveyParticipationCountResponse> participations = surveyRepository
+                    .findParticipationCountByCreatorId(authenticatedUser.getId());
 
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Informe de Conteo de Participación en Encuestas de Usuario");
@@ -284,13 +279,10 @@ public class ExcelReportService {
         }
     }
 
-    private ResponseEntity<byte[]> generateUserSatisfactionReport(Principal principal) {
+    private ResponseEntity<byte[]> generateUserSatisfactionReport() {
         try {
-            String email = principal.getName();
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            List<UserSatisfactionReportResponse> satisfactions = surveyRepository.findUserSatisfactionByCreatorId(user.getId());
+            List<UserSatisfactionReportResponse> satisfactions = surveyRepository
+                    .findUserSatisfactionByCreatorId(authenticatedUser.getId());
 
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Informe de Satisfacción del Usuario");
@@ -329,13 +321,9 @@ public class ExcelReportService {
         }
     }
 
-    private ResponseEntity<byte[]> generateUserReviewsReport(Long surveyId, Principal principal) {
+    private ResponseEntity<byte[]> generateUserReviewsReport(Long surveyId) {
         try {
-            String email = principal.getName();
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            List<Review> reviews = reviewRepository.findBySurveyIdAndUserId(surveyId, user.getId());
+            List<Review> reviews = reviewRepository.findBySurveyIdAndCreatedById(surveyId, authenticatedUser.getId());
             List<ReviewResponse> reviewResponses = reviews.stream()
                     .map(reviewMapper::toResponse)
                     .toList();

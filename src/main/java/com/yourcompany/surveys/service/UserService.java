@@ -6,9 +6,9 @@ import com.yourcompany.surveys.handler.exception.UserNotFoundException;
 import com.yourcompany.surveys.mapper.UserMapper;
 import com.yourcompany.surveys.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.security.Principal;
 
 @Service
 @RequiredArgsConstructor
@@ -16,20 +16,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-
-    public User getUserFromPrincipal(Principal principal) {
-        String email = principal.getName();
-        return userRepository.findByEmail(email).orElseThrow(
-                () -> new UserNotFoundException("Usuario no  encontrado con email: " + email)
-        );
-    }
-
-    public UserResponse getUserResponseFromPrincipal(Principal principal) {
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no  encontrado con email: " + email));
-        return userMapper.toUserResponse(user);
-    }
 
     public UserResponse getUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
@@ -42,5 +28,13 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con nombre de usuario: " + username));
         user.setProfilePictureUrl(imageLink);
         userRepository.save(user);
+    }
+    public User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (User) authentication.getPrincipal();
+    }
+
+    public UserResponse getUserResponseFromAuthenticatedUser() {
+        return userMapper.toUserResponse(getAuthenticatedUser());
     }
 }

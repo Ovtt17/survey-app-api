@@ -1,4 +1,4 @@
-package com.yourcompany.surveys.entity;
+package com.yourcompany.surveys.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.Collections;
 import java.util.Set;
 
-import static com.yourcompany.surveys.entity.Permissions.*;
+import static com.yourcompany.surveys.enums.Permissions.*;
 
 
 @RequiredArgsConstructor
