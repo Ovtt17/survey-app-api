@@ -5,7 +5,6 @@ import com.yourcompany.surveys.dto.answer.AnswerResponse;
 import com.yourcompany.surveys.entity.Answer;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.Survey;
-import com.yourcompany.surveys.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +12,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AnswerMapper {
     public AnswerResponse toResponse(Answer answer) {
+        if (answer == null)
+            throw new NullPointerException("La respuesta no puede ser nula.");
+
         return new AnswerResponse(
                 answer.getId(),
                 answer.getSurvey().getId(),
@@ -23,7 +25,10 @@ public class AnswerMapper {
                 answer.getParticipation().getId()
         );
     }
-    public Answer toEntity(AnswerRequestDTO answerRequest, User user) {
+    public Answer toEntity(AnswerRequestDTO answerRequest) {
+        if (answerRequest == null)
+            throw new NullPointerException("La solicitud de respuesta no puede ser nula.");
+
         return Answer.builder()
                 .id(answerRequest.id())
                 .survey(
@@ -36,7 +41,6 @@ public class AnswerMapper {
                                 .id(answerRequest.questionId())
                                 .build()
                 )
-                .user(user)
                 .answerText(answerRequest.answerText())
                 .build();
     }

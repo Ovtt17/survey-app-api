@@ -9,12 +9,12 @@ public class ParticipationMapper {
     public ParticipationResponse toResponse(Participation participation) {
         return new ParticipationResponse(
                 participation.getId(),
-                participation.getUser().getId(),
-                participation.getUser().getName(),
-                participation.getUser().getProfilePictureUrl(),
+                participation.getCreatedBy().getId(),
+                participation.getCreatedBy().getName(),
+                participation.getCreatedBy().getProfilePictureUrl(),
                 participation.getSurvey().getId(),
                 participation.getSurvey().getTitle(),
-                participation.getParticipatedDate()
+                participation.getCreatedDate()
         );
     }
 

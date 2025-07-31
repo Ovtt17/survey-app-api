@@ -6,7 +6,6 @@ import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.Survey;
-import com.yourcompany.surveys.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -25,25 +24,25 @@ public class SurveyMapper {
                 survey.getId(),
                 survey.getTitle(),
                 survey.getDescription(),
-                userMapper.toUserResponse(survey.getCreator()),
+                userMapper.toUserResponse(survey.getCreatedBy()),
                 survey.getPictureUrl(),
                 survey.getQuestions().stream()
                         .map(questionMapper::toResponse)
                         .collect(Collectors.toList()),
                 survey.getAverageRating(),
                 survey.getRatingCount(),
-                survey.getCreationDate()
+                survey.getCreatedDate()
         );
     }
 
-    public SurveyResponse toResponse (Survey survey) {
+    public SurveyResponse toResponse(Survey survey) {
         return new SurveyResponse(
                 survey.getId(),
                 survey.getTitle(),
                 survey.getDescription(),
-                survey.getCreator().getFullName(),
-                survey.getCreator().getName(),
-                survey.getCreator().getProfilePictureUrl(),
+                survey.getCreatedBy().getFullName(),
+                survey.getCreatedBy().getName(),
+                survey.getCreatedBy().getProfilePictureUrl(),
                 survey.getAverageRating(),
                 survey.getRatingCount(),
                 survey.getPictureUrl()
@@ -60,13 +59,12 @@ public class SurveyMapper {
         );
     }
 
-    public Survey toEntity(SurveyRequestDTO surveyRequest, User user) {
+    public Survey toEntity(SurveyRequestDTO surveyRequest) {
         Survey survey = Survey.builder()
                 .id(surveyRequest.id())
                 .title(surveyRequest.title())
                 .description(surveyRequest.description())
                 .pictureUrl(surveyRequest.pictureUrl())
-                .creator(user)
                 .build();
 
         survey.setQuestions(surveyRequest.questions().stream()

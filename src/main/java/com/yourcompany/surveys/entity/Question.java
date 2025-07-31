@@ -1,18 +1,20 @@
 package com.yourcompany.surveys.entity;
 
+import com.yourcompany.surveys.enums.QuestionType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "questions")
-public class Question {
+public class Question extends BaseAuditingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

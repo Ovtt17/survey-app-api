@@ -8,13 +8,11 @@ import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.mapper.RatingMapper;
 import com.yourcompany.surveys.repository.RatingRepository;
 import com.yourcompany.surveys.repository.SurveyRepository;
-import com.yourcompany.surveys.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,19 +23,16 @@ import java.util.Map;
 public class RatingService {
     private final RatingRepository ratingRepository;
     private final RatingMapper ratingMapper;
-    private final UserRepository userRepository;
     private final SurveyRepository surveyRepository;
+    private final UserService userService;
 
     @Transactional
-    public Rating createOrUpdateRating(@Valid RatingRequestDTO ratingRequest, Principal principal) {
+    public Rating createOrUpdateRating(@Valid RatingRequestDTO ratingRequest) {
         Survey survey = surveyRepository.findById(ratingRequest.surveyId())
                 .orElseThrow(() -> new IllegalArgumentException("Survey not found"));
 
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        Rating existingRating = ratingRepository.findBySurveyIdAndUserId(ratingRequest.surveyId(), user.getId());
+        User user = userService.getAuthenticatedUser();
+        Rating existingRating = ratingRepository.findBySurveyIdAndCreatedById(ratingRequest.surveyId(), user.getId());
 
         if (existingRating != null) {
             Double previousRating = existingRating.getRating();
@@ -49,7 +44,6 @@ public class RatingService {
             ratingRepository.save(existingRating);
         } else {
             Rating rating = ratingMapper.toEntity(ratingRequest);
-            rating.setUser(user);
 
             survey.setRatingCount(survey.getRatingCount() + 1);
             survey.setAverageRating(

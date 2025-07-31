@@ -1,4 +1,4 @@
-package com.yourcompany.surveys.entity;
+package com.yourcompany.surveys.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

@@ -1,4 +1,4 @@
-package com.yourcompany.surveys.entity;
+package com.yourcompany.surveys.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

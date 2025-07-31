@@ -5,16 +5,12 @@ import com.yourcompany.surveys.dto.answer.AnswerResponse;
 import com.yourcompany.surveys.entity.Answer;
 import com.yourcompany.surveys.entity.Participation;
 import com.yourcompany.surveys.entity.Survey;
-import com.yourcompany.surveys.entity.User;
-import com.yourcompany.surveys.handler.exception.UserNotFoundException;
 import com.yourcompany.surveys.mapper.AnswerMapper;
 import com.yourcompany.surveys.repository.AnswerRepository;
 import com.yourcompany.surveys.repository.ParticipationRepository;
-import com.yourcompany.surveys.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +19,6 @@ import java.util.Optional;
 public class AnswerService {
     private final AnswerRepository answerRepository;
     private final AnswerMapper answerMapper;
-    private final UserRepository userRepository;
     private final ParticipationRepository participationRepository;
 
     public List<AnswerResponse> findAll() {
@@ -38,32 +33,25 @@ public class AnswerService {
         return answer.map(answerMapper::toResponse);
     }
 
-    public void save(List<AnswerRequestDTO> answers, Principal principal) {
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no  encontrado con email: " + email));
-
+    public void save(List<AnswerRequestDTO> answers) {
         Survey survey = Survey.builder().id(answers.get(0).surveyId()).build();
 
         Participation participation = Participation.builder()
-                .user(user)
                 .survey(survey)
                 .build();
         participationRepository.save(participation);
 
         for (AnswerRequestDTO a : answers) {
-            Answer newAnswer = answerMapper.toEntity(a, user);
+            Answer newAnswer = answerMapper.toEntity(a);
             newAnswer.setParticipation(participation);
             answerRepository.save(newAnswer);
         }
     }
 
-    public AnswerResponse update(Long id, AnswerRequestDTO answer, Principal principal) {
-        String email = principal.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Usuario no  encontrado con email: " + email));
-        Answer answerEntity = answerMapper.toEntity(answer, user);
+    public AnswerResponse update(Long id, AnswerRequestDTO answer) {
+        Answer answerEntity = answerMapper.toEntity(answer);
         answerEntity.setId(id);
+
         answerRepository.save(answerEntity);
         return answerMapper.toResponse(answerEntity);
     }
@@ -73,7 +61,7 @@ public class AnswerService {
     }
 
     public List<AnswerResponse> findBySurveyIdAndUserIdAndParticipationId(Long surveyId, Long userId, Long participationId) {
-        List<Answer> answers = answerRepository.findBySurveyIdAndUserIdAndParticipationId(surveyId, userId, participationId);
+        List<Answer> answers = answerRepository.findBySurveyIdAndCreatedByIdAndParticipationId(surveyId, userId, participationId);
         return answers.stream()
                 .map(answerMapper::toResponse)
                 .toList();

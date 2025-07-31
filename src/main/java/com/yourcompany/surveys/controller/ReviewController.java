@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -20,8 +19,8 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
-    public ResponseEntity<ReviewResponse> createReview(@RequestBody @Valid ReviewRequestDTO reviewRequest, Principal principal) {
-        ReviewResponse reviewSaved = reviewService.createReview(reviewRequest, principal);
+    public ResponseEntity<ReviewResponse> createReview(@RequestBody @Valid ReviewRequestDTO reviewRequest) {
+        ReviewResponse reviewSaved = reviewService.createReview(reviewRequest);
         return ResponseEntity.ok(reviewSaved);
     }
 
