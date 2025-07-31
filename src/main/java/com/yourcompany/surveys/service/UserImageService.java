@@ -1,6 +1,6 @@
 package com.yourcompany.surveys.service;
 
-import com.yourcompany.surveys.dto.user.UserResponse;
+import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.enums.ImageType;
 import com.yourcompany.surveys.handler.exception.ImageDeletionException;
 import com.yourcompany.surveys.handler.exception.ImageNoContentException;
@@ -17,12 +17,12 @@ public class UserImageService {
 
     public String uploadProfilePicture(
             MultipartFile image,
-            String username,
             ImageType imageType
     ) {
         try {
-            UserResponse user = userService.getUserByUsername(username);
-            String currentProfilePictureUrl = user.profilePictureUrl();
+            User user = userService.getAuthenticatedUser();
+            String username = user.getName();
+            String currentProfilePictureUrl = user.getProfilePictureUrl();
 
             if (currentProfilePictureUrl != null) {
                 imageService.deleteImage(currentProfilePictureUrl);
@@ -36,19 +36,19 @@ public class UserImageService {
         }
     }
 
-    public String deleteProfilePicture(String username) {
+    public String deleteProfilePicture() {
         try {
-            UserResponse user = userService.getUserByUsername(username);
-            String profilePictureUrl = user.profilePictureUrl();
+            User user = userService.getAuthenticatedUser();
+            String profilePictureUrl = user.getProfilePictureUrl();
             if (profilePictureUrl == null) {
                 throw new ImageNoContentException("No tiene foto de perfil.");
             }
             boolean deleted = imageService.deleteImage(profilePictureUrl);
             if (deleted) {
-                userService.updateUserProfilePicture(username, null);
+                userService.updateUserProfilePicture(user.getName(), null);
                 return "Foto de perfil eliminada correctamente.";
             } else {
-                throw new ImageDeletionException("Error al eliminar la foto de perfil para el usuario: " + username);
+                throw new ImageDeletionException("Error al eliminar la foto de perfil para el usuario: " + user.getName());
             }
         } catch (ImageNoContentException | ImageDeletionException e) {
             throw e;
