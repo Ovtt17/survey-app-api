@@ -84,8 +84,19 @@ public class ImageService {
 
     private void validateImageType(MultipartFile image) {
         String contentType = image.getContentType();
-        if (contentType == null ||
-                !(contentType.equals("image/jpeg") || contentType.equals("image/png") || contentType.equals("image/webp"))) {
+        String originalFilename = image.getOriginalFilename();
+
+        // Validación por tipo MIME
+        boolean validMimeType = contentType != null &&
+                (contentType.equals("image/jpeg") ||
+                        contentType.equals("image/png") ||
+                        contentType.equals("image/webp"));
+
+        // Validación por extensión
+        boolean validExtension = originalFilename != null &&
+                originalFilename.toLowerCase().matches(".*\\.(jpg|jpeg|png|webp)$");
+
+        if (!validMimeType || !validExtension) {
             throw new ImageUploadException("El tipo de archivo no es válido. Solo se permiten archivos JPG, JPEG, PNG y WEBP.");
         }
     }
