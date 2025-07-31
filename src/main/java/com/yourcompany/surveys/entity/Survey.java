@@ -3,7 +3,6 @@ package com.yourcompany.surveys.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.List;
 
@@ -14,7 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "surveys")
-@EntityListeners(AuditingEntityListener.class)
 public class Survey extends BaseAuditingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -49,14 +48,14 @@ public class SurveyController {
     }
 
     @GetMapping("/{id}/owner")
-    public ResponseEntity<SurveySubmissionResponse> getSurveyByIdForOwner(@PathVariable Long id, Principal principal) {
-        SurveySubmissionResponse survey = surveyService.findByIdForOwner(id, principal);
+    public ResponseEntity<SurveySubmissionResponse> getSurveyByIdForOwner(@PathVariable Long id) {
+        SurveySubmissionResponse survey = surveyService.findByIdForOwner(id);
         return new ResponseEntity<>(survey, HttpStatus.OK);
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<SurveyResponse>> getSurveysByUserForReport(Principal principal) {
-        return ResponseEntity.ok(surveyService.getByUserForReport(principal));
+    public ResponseEntity<List<SurveyResponse>> getSurveysByUserForReport() {
+        return ResponseEntity.ok(surveyService.getByUserForReport());
     }
 
     @GetMapping("/user/{username}/paged")
@@ -75,10 +74,9 @@ public class SurveyController {
     @PostMapping
     public ResponseEntity<String> createSurvey(
             @RequestPart @Valid SurveyRequestDTO surveyRequest,
-            @RequestPart(value = "picture", required = false) MultipartFile picture,
-            Principal principal
+            @RequestPart(value = "picture", required = false) MultipartFile picture
     ) {
-        String surveyTitle = surveyService.save(surveyRequest, picture, principal);
+        String surveyTitle = surveyService.save(surveyRequest, picture);
         return ResponseEntity.ok("Encuesta con título: " + surveyTitle + " creada exitosamente.");
     }
 
@@ -86,14 +84,12 @@ public class SurveyController {
     public ResponseEntity<String> updateSurvey(
             @PathVariable Long id,
             @RequestPart @Valid SurveyRequestDTO surveyRequest,
-            @RequestPart(required = false) MultipartFile picture,
-            Principal principal
+            @RequestPart(required = false) MultipartFile picture
     ) {
         Long surveyId = surveyService.update(
                 id,
                 surveyRequest,
-                picture,
-                principal
+                picture
         );
         return ResponseEntity.ok("Encuesta con ID: " + surveyId + " actualizada exitosamente.");
     }

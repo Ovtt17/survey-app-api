@@ -7,7 +7,10 @@ import com.yourcompany.surveys.dto.survey.*;
 import com.yourcompany.surveys.entity.*;
 import com.yourcompany.surveys.enums.ImageType;
 import com.yourcompany.surveys.enums.QuestionType;
-import com.yourcompany.surveys.handler.exception.*;
+import com.yourcompany.surveys.handler.exception.ImageDeletionException;
+import com.yourcompany.surveys.handler.exception.ImageNoContentException;
+import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
+import com.yourcompany.surveys.handler.exception.UnauthorizedException;
 import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;
 import com.yourcompany.surveys.mapper.QuestionOptionMapper;
@@ -22,8 +25,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.security.Principal;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,34 +51,33 @@ public class SurveyService {
         return surveyMapper.toPagedResponse(surveys);
     }
 
+    public Survey findByIdOrThrow(Long id) {
+        return surveyRepository.findById(id)
+                .orElseThrow(() -> new SurveyNotFoundException("No se encontró la encuesta."));
+    }
+
     public SurveyResponse findById(Long id) {
-        Optional<Survey> survey = surveyRepository.findById(id);
-        if (survey.isEmpty()) {
-            throw new SurveyNotFoundException("No se encontró la encuesta.");
-        }
-        return surveyMapper.toResponse(survey.get());
+        Survey survey = findByIdOrThrow(id);
+        return surveyMapper.toResponse(survey);
     }
 
     public SurveySubmissionResponse findByIdForSubmission(Long id) {
-        Optional<Survey> survey = surveyRepository.findById(id);
-        if (survey.isEmpty()) {
-            throw new SurveyNotFoundException("No se encontró la encuesta.");
-        }
-        return surveyMapper.toSubmissionResponse(survey.get());
+        Survey survey = findByIdOrThrow(id);
+        return surveyMapper.toSubmissionResponse(survey);
     }
 
-    public SurveySubmissionResponse findByIdForOwner(Long id, Principal principal) {
-        User user = userService.getUserFromPrincipal(principal);
-        Survey survey = surveyRepository.findByIdAndCreator(id, user);
+    public SurveySubmissionResponse findByIdForOwner(Long id) {
+        User user = userService.getAuthenticatedUser();
+        Survey survey = surveyRepository.findByIdAndCreatedBy(id, user);
         if (survey == null) {
             throw new SurveyNotFoundException("No se encontró la encuesta.");
         }
         return surveyMapper.toSubmissionResponse(survey);
     }
 
-    public List<SurveyResponse> getByUserForReport(Principal principal) {
-        User user = userService.getUserFromPrincipal(principal);
-        List<Survey> surveys = surveyRepository.findByCreator(user);
+    public List<SurveyResponse> getByUserForReport() {
+        User user = userService.getAuthenticatedUser();
+        List<Survey> surveys = surveyRepository.findByCreatedBy(user);
         return surveys.stream()
                 .map(surveyMapper::toResponse)
                 .toList();
@@ -86,7 +89,7 @@ public class SurveyService {
             int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Survey> surveys = surveyRepository.findByCreatorUsername(username, pageable);
+        Page<Survey> surveys = surveyRepository.findByCreatedByUsername(username, pageable);
         if (surveys.isEmpty()) {
             return null;
         }
@@ -94,19 +97,18 @@ public class SurveyService {
     }
 
     @Transactional
-    public String save(SurveyRequestDTO surveyRequest, MultipartFile picture, Principal principal) {
-        User user = userService.getUserFromPrincipal(principal);
-        Survey survey = surveyMapper.toEntity(surveyRequest, user);
+    public String save(SurveyRequestDTO surveyRequest, MultipartFile picture) {
+        User user = userService.getAuthenticatedUser();
+        Survey survey = surveyMapper.toEntity(surveyRequest);
         processSurveyPictureIfPresent(picture, survey, user);
         Survey savedSurvey = surveyRepository.save(survey);
         return savedSurvey.getTitle();
     }
 
     @Transactional
-    public String updateSurveyPicture(Long surveyId, MultipartFile newPicture, Principal principal) {
-        User user = userService.getUserFromPrincipal(principal);
-        Survey survey = surveyRepository.findById(surveyId)
-                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + surveyId));
+    public String updateSurveyPicture(Long surveyId, MultipartFile newPicture) {
+        User user = userService.getAuthenticatedUser();
+        Survey survey = findByIdOrThrow(surveyId);
         validateSurveyOwnership(survey, user);
         deleteExistingPictureIfPresent(survey);
         processSurveyPictureIfPresent(newPicture, survey, user);
@@ -150,11 +152,9 @@ public class SurveyService {
         }
     }
 
-    public String deleteSurveyPicture(Long surveyId, Principal principal) {
-        User user = userService.getUserFromPrincipal(principal);
-        Survey survey = surveyRepository.findById(surveyId)
-                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + surveyId));
-        validateSurveyOwnership(survey, user);
+    public String deleteSurveyPicture(Long surveyId) {
+        Survey survey = findByIdOrThrow(surveyId);
+        validateSurveyOwnership(survey, userService.getAuthenticatedUser());
 
         String pictureUrl = survey.getPictureUrl();
         if (pictureUrl != null && !pictureUrl.isEmpty()) {
@@ -168,7 +168,7 @@ public class SurveyService {
     }
 
     private void validateSurveyOwnership(Survey survey, User user) {
-        if (!survey.getCreator().equals(user)) {
+        if (!survey.getCreatedBy().equals(user)) {
             throw new UnauthorizedException("No tienes permiso para actualizar esta encuesta.");
         }
     }
@@ -177,12 +177,10 @@ public class SurveyService {
     public Long update(
             Long surveyId,
             SurveyRequestDTO surveyRequest,
-            MultipartFile picture,
-            Principal principal
+            MultipartFile picture
     ) {
-        User user = userService.getUserFromPrincipal(principal);
-        Survey existingSurvey = surveyRepository.findById(surveyId)
-                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + surveyId));
+        User user = userService.getAuthenticatedUser();
+        Survey existingSurvey = findByIdOrThrow(surveyId);
         validateSurveyOwnership(existingSurvey, user);
         deleteExistingPictureIfPresent(existingSurvey);
         processSurveyPictureIfPresent(picture, existingSurvey, user);
@@ -261,8 +259,7 @@ public class SurveyService {
     }
 
     public void deleteById(Long id) {
-        Survey survey = surveyRepository.findById(id)
-                .orElseThrow(() -> new SurveyNotFoundException("Encuesta no encontrada con ID: " + id));
+        Survey survey = findByIdOrThrow(id);
         deleteExistingPictureIfPresent(survey);
         surveyRepository.deleteById(id);
     }
@@ -273,5 +270,4 @@ public class SurveyService {
                 .map(participationMapper::toResponse)
                 .toList();
     }
-
 }
