@@ -8,6 +8,7 @@ import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.mapper.AnswerMapper;
 import com.yourcompany.surveys.repository.AnswerRepository;
 import com.yourcompany.surveys.repository.ParticipationRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +34,7 @@ public class AnswerService {
         return answer.map(answerMapper::toResponse);
     }
 
+    @Transactional
     public void save(List<AnswerRequestDTO> answers) {
         Survey survey = Survey.builder().id(answers.get(0).surveyId()).build();
 
@@ -56,6 +58,7 @@ public class AnswerService {
         return answerMapper.toResponse(answerEntity);
     }
 
+    @Transactional
     public void delete(Long id) {
         answerRepository.deleteById(id);
     }
