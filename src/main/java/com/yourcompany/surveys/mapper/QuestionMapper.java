@@ -16,7 +16,10 @@ public class QuestionMapper {
 
     private final QuestionOptionMapper questionOptionMapper;
 
-    public QuestionResponse toResponse (Question question) {
+    public QuestionResponse toResponse(Question question) {
+        if (question == null)
+            throw new NullPointerException("La pregunta no puede ser nula.");
+
         return new QuestionResponse(
                 question.getId(),
                 question.getText(),
@@ -29,6 +32,9 @@ public class QuestionMapper {
     }
 
     public Question toEntity(QuestionRequestDTO questionRequest) {
+        if (questionRequest == null)
+            throw new NullPointerException("La solicitud de pregunta no puede ser nula.");
+
         Question question = Question.builder()
                 .id(questionRequest.id())
                 .text(questionRequest.text())

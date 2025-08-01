@@ -11,7 +11,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RatingMapper {
 
-    public Rating toEntity (RatingRequestDTO ratingRequest) {
+    public Rating toEntity(RatingRequestDTO ratingRequest) {
+        if (ratingRequest == null)
+            throw new NullPointerException("La calificación no puede ser nula.");
+
         return Rating.builder()
                 .id(ratingRequest.id())
                 .rating(ratingRequest.rating())
@@ -23,7 +26,10 @@ public class RatingMapper {
                 .build();
     }
 
-    public RatingRequestDTO toRequestDTO (Rating rating) {
+    public RatingRequestDTO toRequestDTO(Rating rating) {
+        if (rating == null)
+            throw new NullPointerException("La calificación no puede ser nula.");
+
         return new RatingRequestDTO(
                 rating.getId(),
                 rating.getRating(),
@@ -32,6 +38,9 @@ public class RatingMapper {
     }
 
     public RatingResponse toResponse(Rating rating) {
+        if (rating == null)
+            throw new NullPointerException("La calificación no puede ser nula.");
+
         return new RatingResponse(
                 rating.getId(),
                 rating.getRating(),
