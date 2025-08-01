@@ -81,6 +81,8 @@ class SurveyServiceTest {
         SurveyPagedResponse result = surveyService.getAllSurveys(page, size);
         assertNotNull(result);
         assertEquals(pagedResponse, result);
+        verify(surveyRepository).findAll(PageRequest.of(page, size));
+        verify(surveyMapper).toPagedResponse(surveyPage);
     }
 
     @Test
@@ -282,5 +284,75 @@ class SurveyServiceTest {
         verify(userService).getAuthenticatedUser();
         verify(surveyRepository).findByIdAndCreatedBy(surveyId, user);
         verify(surveyMapper, never()).toSubmissionResponse(any());
+    }
+
+    @Test
+    void should_return_surveys_by_user_for_report() {
+        // Given
+        User user = User.builder()
+                .username("john_doe")
+                .firstName("John")
+                .lastName("Doe")
+                .profilePictureUrl("profile.jpg")
+                .email("john@example.com")
+                .build();
+        Survey survey1 = Survey.builder()
+                .id(1L)
+                .title("Survey 1")
+                .description("Desc 1")
+                .createdBy(user)
+                .averageRating(4.0)
+                .ratingCount(2L)
+                .pictureUrl("pic1.jpg")
+                .build();
+        Survey survey2 = Survey.builder()
+                .id(2L)
+                .title("Survey 2")
+                .description("Desc 2")
+                .createdBy(user)
+                .averageRating(4.5)
+                .ratingCount(3L)
+                .pictureUrl("pic2.jpg")
+                .build();
+        List<Survey> surveys = List.of(survey1, survey2);
+        SurveyResponse response1 = new SurveyResponse(
+                survey1.getId(),
+                survey1.getTitle(),
+                survey1.getDescription(),
+                user.getFullName(),
+                user.getName(),
+                user.getProfilePictureUrl(),
+                survey1.getAverageRating(),
+                survey1.getRatingCount(),
+                survey1.getPictureUrl()
+        );
+        SurveyResponse response2 = new SurveyResponse(
+                survey2.getId(),
+                survey2.getTitle(),
+                survey2.getDescription(),
+                user.getFullName(),
+                user.getName(),
+                user.getProfilePictureUrl(),
+                survey2.getAverageRating(),
+                survey2.getRatingCount(),
+                survey2.getPictureUrl()
+        );
+        List<SurveyResponse> responseList = List.of(response1, response2);
+
+        // When
+        when(userService.getAuthenticatedUser()).thenReturn(user);
+        when(surveyRepository.findByCreatedBy(user)).thenReturn(surveys);
+        when(surveyMapper.toResponse(survey1)).thenReturn(response1);
+        when(surveyMapper.toResponse(survey2)).thenReturn(response2);
+
+        List<SurveyResponse> resultList = surveyService.getByUserForReport();
+
+        // Then
+        assertNotNull(resultList);
+        assertEquals(responseList, resultList);
+        verify(userService).getAuthenticatedUser();
+        verify(surveyRepository).findByCreatedBy(user);
+        verify(surveyMapper).toResponse(survey1);
+        verify(surveyMapper).toResponse(survey2);
     }
 }
