@@ -162,11 +162,11 @@ public class SurveyService {
         validateSurveyOwnership(survey, userService.getAuthenticatedUser());
 
         String pictureUrl = survey.getPictureUrl();
-        if (pictureUrl != null && !pictureUrl.isEmpty()) {
+        if (pictureUrl == null || pictureUrl.isEmpty()) {
             throw new ImageNoContentException("La encuesta no tiene foto.");
         }
 
-        deleteExistingPicture(survey.getPictureUrl());
+        deleteExistingPicture(pictureUrl);
         survey.setPictureUrl(null);
         surveyRepository.save(survey);
         return "Foto de la encuesta eliminada correctamente de la encuesta ." + surveyId;
