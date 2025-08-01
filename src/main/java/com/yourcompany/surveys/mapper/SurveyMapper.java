@@ -20,6 +20,9 @@ public class SurveyMapper {
     private final QuestionMapper questionMapper;
 
     public SurveySubmissionResponse toSubmissionResponse(Survey survey) {
+        if (survey == null) {
+            throw new NullPointerException("La encuesta no puede ser nula.");
+        }
         return new SurveySubmissionResponse(
                 survey.getId(),
                 survey.getTitle(),
@@ -36,6 +39,9 @@ public class SurveyMapper {
     }
 
     public SurveyResponse toResponse(Survey survey) {
+        if (survey == null) {
+            throw new NullPointerException("La encuesta no puede ser nula.");
+        }
         return new SurveyResponse(
                 survey.getId(),
                 survey.getTitle(),
@@ -50,6 +56,9 @@ public class SurveyMapper {
     }
 
     public SurveyPagedResponse toPagedResponse(Page<Survey> surveys) {
+        if (surveys == null) {
+            throw new NullPointerException("La página de encuestas no puede ser nula.");
+        }
         return new SurveyPagedResponse(
                 surveys.stream()
                         .map(this::toResponse)
@@ -60,6 +69,9 @@ public class SurveyMapper {
     }
 
     public Survey toEntity(SurveyRequestDTO surveyRequest) {
+        if (surveyRequest == null) {
+            throw new NullPointerException("La solicitud de encuesta no puede ser nula.");
+        }
         Survey survey = Survey.builder()
                 .id(surveyRequest.id())
                 .title(surveyRequest.title())
