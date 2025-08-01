@@ -1,5 +1,6 @@
 package com.yourcompany.surveys.service;
 
+import com.yourcompany.surveys.dto.rating.RatingRequestDTO;
 import com.yourcompany.surveys.dto.review.ReviewRequestDTO;
 import com.yourcompany.surveys.dto.review.ReviewResponse;
 import com.yourcompany.surveys.entity.Rating;
@@ -25,11 +26,12 @@ public class ReviewService {
     @Transactional
     public ReviewResponse createReview(ReviewRequestDTO reviewRequest) {
         Review review = reviewMapper.toEntity(reviewRequest);
-        Rating ratingUpdated = ratingService.createOrUpdateRating(
-                ratingMapper.toRequestDTO(review.getRating())
-        );
+        RatingRequestDTO ratingRequestDTO = ratingMapper.toRequestDTO(review.getRating());
+        Rating ratingUpdated = ratingService.createOrUpdateRating(ratingRequestDTO);
         review.setRating(ratingUpdated);
-        return reviewMapper.toResponse(reviewRepository.save(review));
+
+        Review savedReview = reviewRepository.save(review);
+        return reviewMapper.toResponse(savedReview);
     }
 
     public List<ReviewResponse> getReviewsBySurveyId (@PathVariable Long id) {
