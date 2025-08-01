@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -138,5 +139,30 @@ class ReviewServiceTest {
         assertEquals(mockReview.getRating().getId(), ratingCaptor.getValue().getId());
         assertEquals(expectedRatingDTO.id(), ratingRequestCaptor.getValue().id());
         assertEquals(savedReview.getRating().getId(), reviewCaptor.getValue().getRating().getId());
+    }
+
+    @Test
+    void shouldReturnMappedReviewsBySurveyId() {
+        // Arrange
+        Long surveyId = 2L;
+        Review review1 = Review.builder().id(1L).title("Title 1").build();
+        Review review2 = Review.builder().id(2L).title("Title 2").build();
+        List<Review> reviewList = List.of(review1, review2);
+
+        ReviewResponse response1 = new ReviewResponse(1L, "Title 1", null, null, null, null, null, null, null);
+        ReviewResponse response2 = new ReviewResponse(2L, "Title 2", null, null, null, null, null, null, null);
+        List<ReviewResponse> expectedResponses = List.of(response1, response2);
+
+        when(reviewRepository.findBySurveyId(surveyId)).thenReturn(reviewList);
+        when(reviewMapper.toResponse(review1)).thenReturn(response1);
+        when(reviewMapper.toResponse(review2)).thenReturn(response2);
+
+        // Act
+        List<ReviewResponse> result = reviewService.getReviewsBySurveyId(surveyId);
+
+        // Assert
+        assertEquals(expectedResponses, result);
+        verify(reviewRepository).findBySurveyId(surveyId);
+        reviewList.forEach(review -> verify(reviewMapper).toResponse(review));
     }
 }
