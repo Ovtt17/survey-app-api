@@ -7,7 +7,6 @@ import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.mapper.RatingMapper;
 import com.yourcompany.surveys.repository.RatingRepository;
-import com.yourcompany.surveys.repository.SurveyRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,14 +22,12 @@ import java.util.Map;
 public class RatingService {
     private final RatingRepository ratingRepository;
     private final RatingMapper ratingMapper;
-    private final SurveyRepository surveyRepository;
+    private final SurveyService surveyService;
     private final UserService userService;
 
     @Transactional
     public Rating createOrUpdateRating(@Valid RatingRequestDTO ratingRequest) {
-        Survey survey = surveyRepository.findById(ratingRequest.surveyId())
-                .orElseThrow(() -> new IllegalArgumentException("Survey not found"));
-
+        Survey survey = surveyService.findByIdOrThrow(ratingRequest.surveyId());
         User user = userService.getAuthenticatedUser();
         Rating existingRating = ratingRepository.findBySurveyIdAndCreatedById(ratingRequest.surveyId(), user.getId());
 
@@ -51,7 +48,7 @@ public class RatingService {
             );
             return ratingRepository.save(rating);
         }
-        surveyRepository.save(survey);
+        surveyService.save(survey);
         return existingRating;
     }
 
