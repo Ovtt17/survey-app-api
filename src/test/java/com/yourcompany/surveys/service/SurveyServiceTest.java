@@ -1,9 +1,9 @@
 package com.yourcompany.surveys.service;
 
+import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
+import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionResponse;
-import com.yourcompany.surveys.dto.survey.SurveyPagedResponse;
-import com.yourcompany.surveys.dto.survey.SurveyResponse;
-import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
+import com.yourcompany.surveys.dto.survey.*;
 import com.yourcompany.surveys.dto.user.UserResponse;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -355,4 +356,92 @@ class SurveyServiceTest {
         verify(surveyMapper).toResponse(survey1);
         verify(surveyMapper).toResponse(survey2);
     }
+
+    @Test
+    void should_save_survey_and_upload_image_if_present() {
+        // Arrange
+        MultipartFile mockPicture = mock(MultipartFile.class);
+
+        SurveyRequestDTO requestDTO = new SurveyRequestDTO(
+                1L,
+                "Survey Title",
+                "Survey Description",
+                null,
+                List.of()
+        );
+
+        User user = new User();
+        user.setUsername("john_doe");
+
+        Survey surveyBeforeSave = Survey.builder()
+                .title("Survey Title")
+                .description("Survey Description")
+                .createdBy(user)
+                .build();
+
+        Survey savedSurvey = Survey.builder()
+                .title("Survey Title")
+                .description("Survey Description")
+                .createdBy(user)
+                .build();
+
+        when(userService.getAuthenticatedUser()).thenReturn(user);
+        when(surveyMapper.toEntity(requestDTO)).thenReturn(surveyBeforeSave);
+        when(surveyRepository.save(surveyBeforeSave)).thenReturn(savedSurvey);
+
+        // Act
+        String surveyTitleResult = surveyService.save(requestDTO, mockPicture);
+
+        // Assert
+        assertEquals(savedSurvey.getTitle(), surveyTitleResult);
+
+        verify(userService).getAuthenticatedUser();
+        verify(surveyMapper).toEntity(requestDTO);
+        verify(surveyRepository).save(surveyBeforeSave);
+        verify(surveyImageService).uploadSurveyPicture(any(SurveyImageRequest.class));
+    }
+
+    @Test
+    void should_save_survey_without_uploading_image_if_picture_null() {
+        // Arrange
+        SurveyRequestDTO requestDTO = new SurveyRequestDTO(
+                1L,
+                "Survey Title",
+                "Survey Description",
+                null,
+                List.of()
+        );
+
+        User user = new User();
+        user.setUsername("john_doe");
+
+        Survey surveyBeforeSave = Survey.builder()
+                .title("Survey Title")
+                .description("Survey Description")
+                .createdBy(user)
+                .build();
+
+        Survey savedSurvey = Survey.builder()
+                .title("Survey Title")
+                .description("Survey Description")
+                .createdBy(user)
+                .build();
+
+        when(userService.getAuthenticatedUser()).thenReturn(user);
+        when(surveyMapper.toEntity(requestDTO)).thenReturn(surveyBeforeSave);
+        when(surveyRepository.save(surveyBeforeSave)).thenReturn(savedSurvey);
+
+        // Act
+        String resultTitle = surveyService.save(requestDTO, null);
+
+        // Assert
+        assertEquals(savedSurvey.getTitle(), resultTitle);
+
+        verify(userService).getAuthenticatedUser();
+        verify(surveyMapper).toEntity(requestDTO);
+        verify(surveyRepository).save(surveyBeforeSave);
+        verify(surveyImageService, never()).uploadSurveyPicture(any(SurveyImageRequest.class));
+    }
+
+
 }
