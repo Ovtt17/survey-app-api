@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class ParticipationMapper {
     public ParticipationResponse toResponse(Participation participation) {
+        if (participation == null)
+            throw new NullPointerException("La participación no puede ser nula.");
+
         return new ParticipationResponse(
                 participation.getId(),
                 participation.getCreatedBy().getId(),
