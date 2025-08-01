@@ -1,13 +1,13 @@
 package com.yourcompany.surveys.service;
 
-import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
-import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionResponse;
 import com.yourcompany.surveys.dto.survey.*;
 import com.yourcompany.surveys.dto.user.UserResponse;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.enums.QuestionType;
+import com.yourcompany.surveys.handler.exception.ImageDeletionException;
+import com.yourcompany.surveys.handler.exception.ImageNoContentException;
 import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
 import com.yourcompany.surveys.mapper.ParticipationMapper;
 import com.yourcompany.surveys.mapper.QuestionMapper;
@@ -443,5 +443,107 @@ class SurveyServiceTest {
         verify(surveyImageService, never()).uploadSurveyPicture(any(SurveyImageRequest.class));
     }
 
+    @Test
+    void should_update_survey_picture_and_return_new_url() {
+        // Given
+        Long surveyId = 1L;
+        MultipartFile newPicture = mock(MultipartFile.class);
+        User user = new User();
+        user.setUsername("john_doe");
+        Survey survey = Survey.builder()
+                .id(surveyId)
+                .createdBy(user)
+                .pictureUrl("oldPic.jpg")
+                .build();
+        Survey savedSurvey = Survey.builder()
+                .id(surveyId)
+                .createdBy(user)
+                .pictureUrl("newPic.jpg")
+                .build();
+        when(userService.getAuthenticatedUser()).thenReturn(user);
+        when(surveyRepository.findById(surveyId)).thenReturn(Optional.of(survey));
+        when(surveyImageService.deleteSurveyPicture("oldPic.jpg")).thenReturn(true);
+        when(surveyImageService.uploadSurveyPicture(any(SurveyImageRequest.class))).thenReturn(savedSurvey.getPictureUrl());
+        when(surveyRepository.save(survey)).thenReturn(savedSurvey);
+
+        // Act
+        String resultUrl = surveyService.updateSurveyPicture(surveyId, newPicture);
+
+        // Then
+        assertEquals(savedSurvey.getPictureUrl(), resultUrl);
+        verify(userService).getAuthenticatedUser();
+        verify(surveyRepository).findById(surveyId);
+        verify(surveyImageService).deleteSurveyPicture("oldPic.jpg");
+        verify(surveyImageService).uploadSurveyPicture(any(SurveyImageRequest.class));
+        verify(surveyRepository).save(survey);
+    }
+
+    @Test
+    void should_delete_survey_picture_and_return_success_message() {
+        // Given
+        Long surveyId = 1L;
+        MultipartFile ignored = null; // no picture param
+        User user = new User();
+        user.setUsername("john_doe");
+        Survey survey = Survey.builder()
+                .id(surveyId)
+                .createdBy(user)
+                .pictureUrl("pic.jpg")
+                .build();
+        when(userService.getAuthenticatedUser()).thenReturn(user);
+        when(surveyRepository.findById(surveyId)).thenReturn(Optional.of(survey));
+        when(surveyImageService.deleteSurveyPicture("pic.jpg")).thenReturn(true);
+        // Act
+        String result = surveyService.deleteSurveyPicture(surveyId);
+        // Then
+        assertEquals("Foto de la encuesta eliminada correctamente de la encuesta ." + surveyId, result);
+        verify(userService).getAuthenticatedUser();
+        verify(surveyRepository).findById(surveyId);
+        verify(surveyImageService).deleteSurveyPicture("pic.jpg");
+        verify(surveyRepository).save(survey);
+    }
+
+    @Test
+    void should_throw_exception_when_deleting_picture_and_none_exists() {
+        // Given
+        Long surveyId = 2L;
+        User user = new User();
+        user.setUsername("john_doe");
+        Survey survey = Survey.builder()
+                .id(surveyId)
+                .createdBy(user)
+                .pictureUrl(null)
+                .build();
+        when(userService.getAuthenticatedUser()).thenReturn(user);
+        when(surveyRepository.findById(surveyId)).thenReturn(Optional.of(survey));
+        // Act & Then
+        assertThrows(ImageNoContentException.class, () -> surveyService.deleteSurveyPicture(surveyId));
+        verify(userService).getAuthenticatedUser();
+        verify(surveyRepository).findById(surveyId);
+        verify(surveyImageService, never()).deleteSurveyPicture(anyString());
+        verify(surveyRepository, never()).save(any());
+    }
+
+    @Test
+    void should_throw_imageDeletionException_when_delete_picture_fails() {
+        // Given
+        Long surveyId = 3L;
+        User user = new User();
+        user.setUsername("john_doe");
+        Survey survey = Survey.builder()
+                .id(surveyId)
+                .createdBy(user)
+                .pictureUrl("pic.jpg")
+                .build();
+        when(userService.getAuthenticatedUser()).thenReturn(user);
+        when(surveyRepository.findById(surveyId)).thenReturn(Optional.of(survey));
+        when(surveyImageService.deleteSurveyPicture("pic.jpg")).thenReturn(false);
+        // Act & Assert
+        assertThrows(ImageDeletionException.class, () -> surveyService.deleteSurveyPicture(surveyId));
+        verify(userService).getAuthenticatedUser();
+        verify(surveyRepository).findById(surveyId);
+        verify(surveyImageService).deleteSurveyPicture("pic.jpg");
+        verify(surveyRepository, never()).save(any());
+    }
 
 }
