@@ -97,6 +97,11 @@ public class SurveyService {
     }
 
     @Transactional
+    public Survey save(Survey survey) {
+        return surveyRepository.save(survey);
+    }
+
+    @Transactional
     public String save(SurveyRequestDTO surveyRequest, MultipartFile picture) {
         User user = userService.getAuthenticatedUser();
         Survey survey = surveyMapper.toEntity(surveyRequest);
