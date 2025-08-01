@@ -263,6 +263,7 @@ public class SurveyService {
                 });
     }
 
+    @Transactional
     public void deleteById(Long id) {
         Survey survey = findByIdOrThrow(id);
         deleteExistingPictureIfPresent(survey);
