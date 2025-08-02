@@ -104,7 +104,7 @@ public class SurveyService {
     public String updateSurveyPicture(Long surveyId, MultipartFile newPicture) {
         User user = userService.getAuthenticatedUser();
         Survey survey = findByIdOrThrow(surveyId);
-        validateSurveyOwnership(survey);
+        validateSurveyOwnership(survey, user);
         deleteExistingPictureIfPresent(survey);
         processSurveyPictureIfPresent(newPicture, survey, user);
         Survey surveyWithPictureModified = surveyRepository.save(survey);
@@ -148,8 +148,9 @@ public class SurveyService {
     }
 
     public String deleteSurveyPicture(Long surveyId) {
+        User user = userService.getAuthenticatedUser();
         Survey survey = findByIdOrThrow(surveyId);
-        validateSurveyOwnership(survey);
+        validateSurveyOwnership(survey, user);
 
         String pictureUrl = survey.getPictureUrl();
         if (pictureUrl == null || pictureUrl.isEmpty()) {
@@ -162,14 +163,6 @@ public class SurveyService {
         return "Foto de la encuesta eliminada correctamente de la encuesta ." + surveyId;
     }
 
-    private void validateSurveyOwnership(Survey survey) {
-        User user = userService.getAuthenticatedUser();
-        User creator = survey.getCreatedBy();
-        if (!creator.getId().equals(user.getId())) {
-            throw new UnauthorizedException("No tienes permiso para actualizar esta encuesta.");
-        }
-    }
-
     @Transactional
     public Long update(
             Long surveyId,
@@ -180,13 +173,20 @@ public class SurveyService {
         Survey existingSurvey = findByIdOrThrow(surveyId);
         Survey surveyUpdated = surveyMapper.toEntity(existingSurvey, surveyRequest);
 
-        validateSurveyOwnership(surveyUpdated);
-        deleteExistingPictureIfPresent(surveyUpdated);
+        validateSurveyOwnership(surveyUpdated, user);
+        deleteExistingPictureIfPresent(existingSurvey);
         processSurveyPictureIfPresent(picture, surveyUpdated, user);
 
         Survey surveySaved = surveyRepository.save(surveyUpdated);
 
         return surveySaved.getId();
+    }
+
+    private void validateSurveyOwnership(Survey survey, User user) {
+        User creator = survey.getCreatedBy();
+        if (!creator.getId().equals(user.getId())) {
+            throw new UnauthorizedException("No tienes permiso para actualizar esta encuesta.");
+        }
     }
 
     @Transactional
