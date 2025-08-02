@@ -1,19 +1,17 @@
 package com.yourcompany.surveys.service;
 
+import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionResponse;
 import com.yourcompany.surveys.dto.survey.*;
 import com.yourcompany.surveys.dto.user.UserResponse;
+import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.entity.User;
 import com.yourcompany.surveys.enums.QuestionType;
 import com.yourcompany.surveys.handler.exception.ImageDeletionException;
 import com.yourcompany.surveys.handler.exception.ImageNoContentException;
 import com.yourcompany.surveys.handler.exception.SurveyNotFoundException;
-import com.yourcompany.surveys.mapper.ParticipationMapper;
-import com.yourcompany.surveys.mapper.QuestionMapper;
-import com.yourcompany.surveys.mapper.QuestionOptionMapper;
 import com.yourcompany.surveys.mapper.SurveyMapper;
-import com.yourcompany.surveys.repository.ParticipationRepository;
 import com.yourcompany.surveys.repository.SurveyRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,14 +38,6 @@ class SurveyServiceTest {
     private SurveyRepository surveyRepository;
     @Mock
     private SurveyMapper surveyMapper;
-    @Mock
-    private QuestionMapper questionMapper;
-    @Mock
-    private ParticipationRepository participationRepository;
-    @Mock
-    private ParticipationMapper participationMapper;
-    @Mock
-    private QuestionOptionMapper questionOptionMapper;
     @Mock
     private UserService userService;
     @Mock
@@ -448,8 +438,10 @@ class SurveyServiceTest {
         // Given
         Long surveyId = 1L;
         MultipartFile newPicture = mock(MultipartFile.class);
-        User user = new User();
-        user.setUsername("john_doe");
+        User user = User.builder()
+                .id(10L)
+                .username("john_doe")
+                .build();
         Survey survey = Survey.builder()
                 .id(surveyId)
                 .createdBy(user)
@@ -471,7 +463,6 @@ class SurveyServiceTest {
 
         // Then
         assertEquals(savedSurvey.getPictureUrl(), resultUrl);
-        verify(userService).getAuthenticatedUser();
         verify(surveyRepository).findById(surveyId);
         verify(surveyImageService).deleteSurveyPicture("oldPic.jpg");
         verify(surveyImageService).uploadSurveyPicture(any(SurveyImageRequest.class));
@@ -483,8 +474,10 @@ class SurveyServiceTest {
         // Given
         Long surveyId = 1L;
         MultipartFile ignored = null; // no picture param
-        User user = new User();
-        user.setUsername("john_doe");
+        User user = User.builder()
+                .id(10L)
+                .username("john_doe")
+                .build();
         Survey survey = Survey.builder()
                 .id(surveyId)
                 .createdBy(user)
@@ -497,7 +490,6 @@ class SurveyServiceTest {
         String result = surveyService.deleteSurveyPicture(surveyId);
         // Then
         assertEquals("Foto de la encuesta eliminada correctamente de la encuesta ." + surveyId, result);
-        verify(userService).getAuthenticatedUser();
         verify(surveyRepository).findById(surveyId);
         verify(surveyImageService).deleteSurveyPicture("pic.jpg");
         verify(surveyRepository).save(survey);
@@ -507,8 +499,10 @@ class SurveyServiceTest {
     void should_throw_exception_when_deleting_picture_and_none_exists() {
         // Given
         Long surveyId = 2L;
-        User user = new User();
-        user.setUsername("john_doe");
+        User user = User.builder()
+                .id(10L)
+                .username("john_doe")
+                .build();
         Survey survey = Survey.builder()
                 .id(surveyId)
                 .createdBy(user)
@@ -518,7 +512,6 @@ class SurveyServiceTest {
         when(surveyRepository.findById(surveyId)).thenReturn(Optional.of(survey));
         // Act & Then
         assertThrows(ImageNoContentException.class, () -> surveyService.deleteSurveyPicture(surveyId));
-        verify(userService).getAuthenticatedUser();
         verify(surveyRepository).findById(surveyId);
         verify(surveyImageService, never()).deleteSurveyPicture(anyString());
         verify(surveyRepository, never()).save(any());
@@ -528,8 +521,10 @@ class SurveyServiceTest {
     void should_throw_imageDeletionException_when_delete_picture_fails() {
         // Given
         Long surveyId = 3L;
-        User user = new User();
-        user.setUsername("john_doe");
+        User user = User.builder()
+                .id(10L)
+                .username("john_doe")
+                .build();
         Survey survey = Survey.builder()
                 .id(surveyId)
                 .createdBy(user)
@@ -540,10 +535,49 @@ class SurveyServiceTest {
         when(surveyImageService.deleteSurveyPicture("pic.jpg")).thenReturn(false);
         // Act & Assert
         assertThrows(ImageDeletionException.class, () -> surveyService.deleteSurveyPicture(surveyId));
-        verify(userService).getAuthenticatedUser();
         verify(surveyRepository).findById(surveyId);
         verify(surveyImageService).deleteSurveyPicture("pic.jpg");
         verify(surveyRepository, never()).save(any());
+    }
+
+    @Test
+    void should_update_survey_and_delegate_question_replacement() {
+        // Given
+        Long surveyId = 1L;
+        User user = User.builder()
+                .id(10L)
+                .username("john_doe")
+                .build();
+        // set up existing survey with one initial question
+        Question oldQuestion = new Question();
+        oldQuestion.setId(1L);
+        oldQuestion.setText("old question");
+        Survey existingSurvey = Survey.builder()
+                .id(surveyId)
+                .title("old title")
+                .description("old desc")
+                .createdBy(user)
+                .pictureUrl("oldPic.jpg")
+                .questions(List.of(oldQuestion))
+                .build();
+        SurveyRequestDTO requestDTO = new SurveyRequestDTO(
+                surveyId, "new title", "new desc", null,
+                List.of(new QuestionRequestDTO(null, "q1", QuestionType.TEXTO.getValue(), false, List.of()))
+        );
+        MultipartFile newPic = mock(MultipartFile.class);
+        when(userService.getAuthenticatedUser()).thenReturn(user);
+        when(surveyRepository.findById(surveyId)).thenReturn(Optional.of(existingSurvey));
+        when(surveyImageService.deleteSurveyPicture(existingSurvey.getPictureUrl())).thenReturn(true);
+        when(surveyImageService.uploadSurveyPicture(any())).thenReturn("newPic.jpg");
+        // Act
+        Long result = surveyService.update(surveyId, requestDTO, newPic);
+        // Then
+        assertEquals(surveyId, result);
+        // picture operations
+        verify(surveyImageService).deleteSurveyPicture("oldPic.jpg");
+        verify(surveyImageService).uploadSurveyPicture(any());
+        // survey details updated
+        verify(surveyRepository).save(existingSurvey);
     }
 
 }

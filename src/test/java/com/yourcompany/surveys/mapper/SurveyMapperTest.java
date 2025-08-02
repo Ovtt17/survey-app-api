@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -150,7 +151,7 @@ class SurveyMapperTest {
     void shouldMapSurveyRequestDTOToEntity() {
         // Arrange
         QuestionRequestDTO questionDto = new QuestionRequestDTO(
-                1L,
+                null, // id is null for create scenario
                 "Sample question?",
                 QuestionType.OPCION_UNICA.getValue(),
                 false,
@@ -170,7 +171,8 @@ class SurveyMapperTest {
                 .text("Sample question?")
                 .build();
 
-        when(questionMapper.toEntity(questionDto)).thenReturn(mockQuestion);
+        // The correct mock must include the survey as an argument
+        when(questionMapper.toEntity(eq(questionDto), any(Survey.class))).thenReturn(mockQuestion);
 
         // Act
         Survey result = surveyMapper.toEntity(dto);
@@ -178,10 +180,102 @@ class SurveyMapperTest {
         // Assert
         assertEquals(dto.id(), result.getId());
         assertEquals(1, result.getQuestions().size());
-
         Question actualQuestion = result.getQuestions().get(0);
-        assertEquals(mockQuestion, actualQuestion);
-        assertEquals(result, actualQuestion.getSurvey());  // We verify that the survey was set
+        assertNotNull(actualQuestion);
+        assertEquals(mockQuestion.getId(), actualQuestion.getId());
+        assertEquals(mockQuestion.getText(), actualQuestion.getText());
+    }
+
+    @Test
+    void shouldMapSurveyRequestDTOToEntityWithExistingQuestion() {
+        // Arrange
+        QuestionRequestDTO questionDto = new QuestionRequestDTO(
+                2L, // existing id
+                "Existing question?",
+                QuestionType.OPCION_UNICA.getValue(),
+                false,
+                List.of()
+        );
+
+        SurveyRequestDTO dto = new SurveyRequestDTO(
+                2L,
+                "Test",
+                "Description",
+                "pic.jpg",
+                List.of(questionDto)
+        );
+
+        Question existingQuestion = Question.builder()
+                .id(2L)
+                .text("Existing question?")
+                .build();
+
+        Survey existingSurvey = Survey.builder()
+                .id(2L)
+                .questions(new ArrayList<>(List.of(existingQuestion)))
+                .build();
+
+        Question mockQuestion = Question.builder()
+                .id(2L)
+                .text("Updated question!")
+                .build();
+
+        // Mock for overload with existingQuestion
+        when(questionMapper.toEntity(eq(existingQuestion), eq(questionDto), any(Survey.class))).thenReturn(mockQuestion);
+
+        // Act
+        Survey result = surveyMapper.toEntity(existingSurvey, dto);
+
+        // Assert
+        assertEquals(dto.id(), result.getId());
+        assertEquals(1, result.getQuestions().size());
+        Question actualQuestion = result.getQuestions().get(0);
+        assertEquals(mockQuestion.getId(), actualQuestion.getId());
+        assertEquals(mockQuestion.getText(), actualQuestion.getText());
+    }
+
+    @Test
+    void shouldUpdateExistingSurveyWithRequestDTO() {
+        // Arrange
+        QuestionRequestDTO questionDto = new QuestionRequestDTO(
+                3L,
+                "Updated question?",
+                QuestionType.OPCION_UNICA.getValue(),
+                false,
+                List.of()
+        );
+        SurveyRequestDTO dto = new SurveyRequestDTO(
+                5L,
+                "New title",
+                "New description",
+                "new.jpg",
+                List.of(questionDto)
+        );
+        Question oldQuestion = Question.builder()
+                .id(3L)
+                .text("Old question?")
+                .build();
+        Survey existingSurvey = Survey.builder()
+                .id(5L)
+                .title("Old title")
+                .description("Old description")
+                .pictureUrl("old.jpg")
+                .questions(new ArrayList<>(List.of(oldQuestion)))
+                .build();
+        Question updatedQuestion = Question.builder()
+                .id(3L)
+                .text("Updated question?")
+                .build();
+        when(questionMapper.toEntity(eq(oldQuestion), eq(questionDto), any(Survey.class))).thenReturn(updatedQuestion);
+        // Act
+        Survey result = surveyMapper.toEntity(existingSurvey, dto);
+        // Assert
+        assertEquals(dto.id(), result.getId());
+        assertEquals(dto.title(), result.getTitle());
+        assertEquals(dto.description(), result.getDescription());
+        assertEquals(dto.pictureUrl(), result.getPictureUrl());
+        assertEquals(1, result.getQuestions().size());
+        assertEquals(updatedQuestion.getText(), result.getQuestions().get(0).getText());
     }
 
 }
