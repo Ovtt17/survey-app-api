@@ -1,15 +1,19 @@
 package com.yourcompany.surveys.mapper;
 
+import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyPagedResponse;
 import com.yourcompany.surveys.dto.survey.SurveyRequestDTO;
 import com.yourcompany.surveys.dto.survey.SurveyResponse;
 import com.yourcompany.surveys.dto.survey.SurveySubmissionResponse;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.Survey;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -68,25 +72,59 @@ public class SurveyMapper {
         );
     }
 
+    /*
+     * Converts a SurveyRequestDTO to a Survey entity.
+     *
+     * @param surveyRequest The SurveyRequestDTO containing the survey data.
+     * @return A Survey entity populated with the data from the request.
+     */
     public Survey toEntity(SurveyRequestDTO surveyRequest) {
-        if (surveyRequest == null) {
+        return toEntity(null, surveyRequest);
+    }
+
+    /*
+     * Converts a SurveyRequestDTO to a Survey entity, optionally updating an existing Survey.
+     *
+     * @param existingSurvey The existing Survey to update, or null to create a new one.
+     * @param request The SurveyRequestDTO containing the survey data.
+     * @return A Survey entity populated with the data from the request.
+     */
+    public Survey toEntity(Survey existingSurvey, SurveyRequestDTO request) {
+        if (request == null) {
             throw new NullPointerException("La solicitud de encuesta no puede ser nula.");
         }
-        Survey survey = Survey.builder()
-                .id(surveyRequest.id())
-                .title(surveyRequest.title())
-                .description(surveyRequest.description())
-                .pictureUrl(surveyRequest.pictureUrl())
-                .build();
 
-        survey.setQuestions(surveyRequest.questions().stream()
-                .map(questionRequest -> {
-                    Question question = questionMapper.toEntity(questionRequest);
-                    question.setSurvey(survey);
-                    return question;
-                })
-                .collect(Collectors.toList()));
+        Survey survey = existingSurvey != null ? existingSurvey : new Survey();
+        survey.setId(request.id());
+        survey.setTitle(request.title());
+        survey.setDescription(request.description());
+        survey.setPictureUrl(request.pictureUrl());
+
+        List<Question> questions = request.questions()
+                .stream()
+                .map(questionRequest -> mapQuestionRequestToQuestion(questionRequest, survey))
+                .toList();
+
+        if (survey.getQuestions() == null) {
+            survey.setQuestions(new ArrayList<>());
+        }
+
+        survey.getQuestions().clear();
+        survey.getQuestions().addAll(questions);
 
         return survey;
+    }
+
+    private Question mapQuestionRequestToQuestion(QuestionRequestDTO request, Survey survey) {
+        if (request.id() != null) {
+            Question existingQuestion = survey.getQuestions().stream()
+                    .filter(q -> q.getId().equals(request.id()))
+                    .findFirst()
+                    .orElse(null);
+
+            return questionMapper.toEntity(existingQuestion, request, survey);
+        } else {
+            return questionMapper.toEntity(request, survey);
+        }
     }
 }
