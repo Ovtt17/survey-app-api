@@ -5,6 +5,7 @@ import com.yourcompany.surveys.dto.question.QuestionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionResponse;
 import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.QuestionOption;
+import com.yourcompany.surveys.entity.Survey;
 import com.yourcompany.surveys.enums.QuestionType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,8 +73,11 @@ class QuestionMapperTest {
                 false,
                 List.of(option1, option2)
         );
+
+        Survey survey = new Survey();
+        survey.setId(100L);
         // when
-        Question entity = questionMapper.toEntity(requestDTO);
+        Question entity = questionMapper.toEntity(requestDTO, survey);
         // then
         assertEquals(requestDTO.id(), entity.getId());
         assertEquals(requestDTO.text(), entity.getText());

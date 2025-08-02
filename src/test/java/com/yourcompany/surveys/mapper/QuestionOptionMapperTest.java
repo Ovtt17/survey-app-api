@@ -2,6 +2,7 @@ package com.yourcompany.surveys.mapper;
 
 import com.yourcompany.surveys.dto.question.QuestionOptionRequestDTO;
 import com.yourcompany.surveys.dto.question.QuestionOptionResponse;
+import com.yourcompany.surveys.entity.Question;
 import com.yourcompany.surveys.entity.QuestionOption;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,8 +27,11 @@ class QuestionOptionMapperTest {
                 false
         );
 
+        Question question = new Question();
+        question.setId(1L);
+
         // when
-        QuestionOption entity = mapper.toEntity(request);
+        QuestionOption entity = mapper.toEntity(request, question);
 
         // then
         assertNotNull(entity);
