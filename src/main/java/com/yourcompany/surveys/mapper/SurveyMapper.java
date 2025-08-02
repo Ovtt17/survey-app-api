@@ -99,6 +99,11 @@ public class SurveyMapper {
         survey.setDescription(request.description());
         survey.setPictureUrl(request.pictureUrl());
 
+        // Preserve the createdBy field if updating an existing survey
+        if (existingSurvey != null) {
+            survey.setCreatedBy(existingSurvey.getCreatedBy());
+        }
+
         List<Question> questions = request.questions()
                 .stream()
                 .map(questionRequest -> mapQuestionRequestToQuestion(questionRequest, survey))
