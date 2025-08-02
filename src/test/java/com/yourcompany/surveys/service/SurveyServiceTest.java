@@ -24,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -561,23 +562,65 @@ class SurveyServiceTest {
                 .questions(List.of(oldQuestion))
                 .build();
         SurveyRequestDTO requestDTO = new SurveyRequestDTO(
-                surveyId, "new title", "new desc", null,
-                List.of(new QuestionRequestDTO(null, "q1", QuestionType.TEXTO.getValue(), false, List.of()))
+                surveyId,
+                "new title",
+                "new desc",
+                "newPic.jpg",
+                List.of(
+                        new QuestionRequestDTO(
+                                null,
+                                "q1",
+                                QuestionType.TEXTO.getValue(),
+                                false,
+                                List.of()
+                        )
+                )
         );
         MultipartFile newPic = mock(MultipartFile.class);
+
+        Question newQuestion = Question.builder()
+                .id(1L)
+                .text("q1")
+                .type(QuestionType.TEXTO)
+                .isCorrect(false)
+                .options(new ArrayList<>())
+                .build();
+
+        Survey updatedSurvey = Survey.builder()
+                .id(surveyId)
+                .title("new title")
+                .description("new desc")
+                .createdBy(user)
+                .pictureUrl("newPic.jpg")
+                .questions(new ArrayList<>(List.of(newQuestion)))
+                .build();
+
         when(userService.getAuthenticatedUser()).thenReturn(user);
         when(surveyRepository.findById(surveyId)).thenReturn(Optional.of(existingSurvey));
-        when(surveyImageService.deleteSurveyPicture(existingSurvey.getPictureUrl())).thenReturn(true);
-        when(surveyImageService.uploadSurveyPicture(any())).thenReturn("newPic.jpg");
+        when(surveyMapper.toEntity(existingSurvey, requestDTO)).thenReturn(updatedSurvey);
+        when(surveyImageService.deleteSurveyPicture("oldPic.jpg")).thenReturn(true);
+        when(surveyImageService.uploadSurveyPicture(any(SurveyImageRequest.class))).thenReturn("newPic.jpg");
+        when(surveyRepository.save(updatedSurvey)).thenReturn(updatedSurvey);
+
         // Act
-        Long result = surveyService.update(surveyId, requestDTO, newPic);
+        Long savedSurveyId = surveyService.update(surveyId, requestDTO, newPic);
+
         // Then
-        assertEquals(surveyId, result);
+        assertEquals(surveyId, savedSurveyId);
+        assertEquals(requestDTO.title(), updatedSurvey.getTitle());
+        assertEquals(requestDTO.description(), updatedSurvey.getDescription());
+        assertEquals(requestDTO.pictureUrl(), updatedSurvey.getPictureUrl());
+        assertEquals(requestDTO.questions().size(), updatedSurvey.getQuestions().size());
+        assertEquals(requestDTO.questions().get(0).text(), updatedSurvey.getQuestions().get(0).getText());
+
         // picture operations
+        verify(userService).getAuthenticatedUser();
+        verify(surveyRepository).findById(surveyId);
+        verify(surveyMapper).toEntity(existingSurvey, requestDTO);
         verify(surveyImageService).deleteSurveyPicture("oldPic.jpg");
-        verify(surveyImageService).uploadSurveyPicture(any());
+        verify(surveyImageService).uploadSurveyPicture(any(SurveyImageRequest.class));
         // survey details updated
-        verify(surveyRepository).save(existingSurvey);
+        verify(surveyRepository).save(updatedSurvey);
     }
 
 }
